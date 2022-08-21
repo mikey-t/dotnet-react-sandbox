@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  postgresql:
+    image: postgres
+    container_name: drs_postgres
+    volumes:
+      - ./pg/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: '${DB_ROOT_USER}'
+      POSTGRES_PASSWORD: '${DB_ROOT_PASSWORD}'
+    ports:
+      - '${DB_PORT}:5432'

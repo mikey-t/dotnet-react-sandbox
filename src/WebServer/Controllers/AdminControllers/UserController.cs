@@ -33,28 +33,4 @@ public class UserController : ControllerBase
         
         return Ok(allResponses);
     }
-    
-    [HttpPost("{userId:long}/content-creator/{isContentCreator:bool}")]
-    [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
-    public async Task<IActionResult> SetUserContentCreator(long userId, bool isContentCreator)
-    {
-        var user = await _repo.GetAccountById(userId);
-
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        if (isContentCreator)
-        {
-            await _repo.AddRole(userId, nameof(Role.CONTENT_CREATOR));
-        }
-        else
-        {
-            await _repo.RemoveRole(userId, nameof(Role.CONTENT_CREATOR));
-        }
-        
-        return Ok();
-    }
 }

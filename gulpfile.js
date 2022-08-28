@@ -22,6 +22,7 @@ const path = require('path')
 const yargs = require('yargs/yargs')
 const {hideBin} = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv)).argv;
+const which = require('which')
 
 const buildDir = './build'
 const buildWwwrootDir = './build/wwwroot'
@@ -154,6 +155,85 @@ async function dbMigrationsList(dbContextName) {
   await dotnetDbMigrationsList(dbContextName, dbMigratorPath)
 }
 
+async function opensslGenCert() {
+  // Check if openssl is installed
+  let resolved = which.sync('openssl', {nothrow: true})
+  if (!resolved) {
+    throw Error('openssl is required but was not found in the path')
+  }
+
+  console.log('openssl is installed, continuing...')
+
+  let url = argv['url']
+  if (!url) {
+    throw Error('Param \'url\' is required. Example: npm run opensslGenCert -- --url=local.your-site.com')
+  }
+
+  const keyName = url + '.key'
+  const crtName = url + '.crt'
+  const pfxName = url + '.pfx'
+
+  if (fs.pathExistsSync(path.join(__dirname, `cert/${pfxName}`))) {
+    throw Error(`./cert/${pfxName} already exists. Delete this first if you want to generate a new version.`)
+  }
+
+  console.log(`attempting to generate cert ${pfxName}`)
+
+  const genCertSpawnArgs = {...defaultSpawnOptions, cwd: 'cert'}
+
+  const genKeyAndCrtArgs = [
+    'req',
+    '-x509',
+    '-newkey',
+    'rsa:4096',
+    '-sha256',
+    '-days',
+    '3650',
+    '-nodes',
+    '-keyout',
+    keyName,
+    '-out',
+    crtName,
+    '-subj',
+    `"/CN=${url}"`,
+    '-addext',
+    `"subjectAltName=DNS:${url},IP:127.0.0.1"`
+  ]
+
+  await waitForProcess(spawn('openssl', genKeyAndCrtArgs, genCertSpawnArgs))
+
+  console.log('converting key and crt to pfx...')
+
+  const convertToPfxArgs = [
+    'pkcs12',
+    '-export',
+    '-out',
+    pfxName,
+    '-inkey',
+    keyName,
+    '-in',
+    crtName,
+    '-password',
+    'pass:'
+  ]
+
+  await waitForProcess(spawn('openssl', convertToPfxArgs, genCertSpawnArgs))
+}
+
+async function winInstallCert() {
+  console.log('******************************')
+  console.log('* Requires admin permissions *')
+  console.log('******************************')
+
+  let certName = argv['name']
+  if (!certName) {
+    throw Error('Param cert \'name\' is required. Example: npm run winInstallCert -- --name=local.your-site.com.pfx')
+  }
+
+  const args = ['Import-PfxCertificate', '-FilePath', certName, '-CertStoreLocation', 'Cert:\\LocalMachine\\Root']
+  await waitForProcess(spawn('powershell', args, {...defaultSpawnOptions, cwd: 'cert'}))
+}
+
 // ******************************
 // Composed and exported commands
 
@@ -208,3 +288,5 @@ exports.syncEnvFiles = syncEnvFiles
 exports.configureDotnetDevCert = configureDotnetDevCert
 exports.copyClientBuild = copyClientBuild
 exports.packageBuild = packageBuild
+exports.opensslGenCert = opensslGenCert
+exports.winInstallCert = winInstallCert

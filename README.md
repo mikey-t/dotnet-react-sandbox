@@ -1,6 +1,6 @@
 # dotnet-react-sandbox
 
-It's an app! A sandbox app!
+It's an app! A sandbox app! Project root package.json script commands and gulpfile.js tasks contain all the automated operations available for the project.
 
 ## Run Locally
 
@@ -30,7 +30,7 @@ Pre-requisite steps:
 Setup steps:
 - Clone repo
 - Run `npm run npmInstall` (runs npm install in root and in src/client)
-- Run `npm run installDotnetEfTool`
+- Run `npm run installDotnetEfTool` (or to update it: `npm run updateDotnetEfTool`)
 - Run `npm run syncEnvFiles`
 - Edit env file with appropriate values for your local environment:
   - `./env/.env.server`
@@ -87,8 +87,10 @@ I have an automated script that does the following (you could create one for you
 - Functionality to enable/disable email verification functionality so you can register new accounts without setting up email sending.
 - Docker config/plumbing to generate a deployable image.
 - Move out boilerplate gulpfile commands to something like CRA's react-scripts.
-- Generator script that takes in things like project name and local url and sets up a new project.
-- More docs on how to do various things
+- Generator scripts:
+  - Script that sets up dependencies (ensure windows/mac/linux support)
+  - Script that takes in things like project name and local url and completely sets up a new project
+- More docs on how to do various things:
   - How to create a new controller
   - Dependency injection notes
   - Use of main and test DB to easily write data based unit tests without altering main DB data and with the ability to safely run destructive data unit tests without breaking anything.

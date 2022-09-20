@@ -39,12 +39,12 @@ try
             kestrelOptions.ListenAnyIP(envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT));
             kestrelOptions.ListenAnyIP(envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTPS_PORT), listenOptions => listenOptions.UseHttps(httpsOptions =>
             {
-                httpsOptions.ServerCertificate = new X509Certificate2("change-me.pfx");
+                httpsOptions.ServerCertificate = new X509Certificate2(envSettings.GetString(GlobalSettings.DEV_CERT_NAME));
                 httpsOptions.AllowAnyClientCertificate();
             }));
-        });        
+        });
     }
-    
+
     DefaultTypeMap.MatchNamesWithUnderscores = true;
     SqlMapper.AddTypeHandler(new DateTimeHandler());
 
@@ -89,7 +89,7 @@ try
     // app.UsePathBase("/api");
 
     app.UseSerilogRequestLogging();
-    
+
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())
@@ -124,7 +124,7 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Unhandled exception");
-    
+
     var color = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine(ex);

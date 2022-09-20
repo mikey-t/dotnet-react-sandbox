@@ -23,6 +23,7 @@ const yargs = require('yargs/yargs')
 const {hideBin} = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv)).argv;
 const which = require('which')
+require('dotenv').config()
 
 const buildDir = './build'
 const buildWwwrootDir = './build/wwwroot'
@@ -50,19 +51,20 @@ throwIfDockerDependenciesNotUp = async () => {
 async function syncEnvFiles() {
   const envName = '.env'
 
-  const rootServerEnv = './env/.env.server'
-  const rootServerEnvTemplate = rootServerEnv + '.template'
+  const rootEnv = './.env'
+  const rootEnvTemplate = rootEnv + '.template'
 
   // Copy root .env.[category].template to .env
-  await copyNewEnvValues(rootServerEnvTemplate, rootServerEnv)
+  await copyNewEnvValues(rootEnvTemplate, rootEnv)
 
   // Copy root .env.[category] to subdirectory .env files
-  await overwriteEnvFile(rootServerEnv, path.join(serverAppPath, envName))
-  await overwriteEnvFile(rootServerEnv, path.join(dockerPath, envName))
-  await overwriteEnvFile(rootServerEnv, path.join(dbMigratorPath, envName))
+  await overwriteEnvFile(rootEnv, path.join(serverAppPath, envName))
+  await overwriteEnvFile(rootEnv, path.join(dockerPath, envName))
+  await overwriteEnvFile(rootEnv, path.join(dbMigratorPath, envName))
+  await overwriteEnvFile(rootEnv, path.join(clientAppPath, envName))
 
   await ensureBuildDir()
-  await overwriteEnvFile(rootServerEnv, path.join('./build/', envName))
+  await overwriteEnvFile(rootEnv, path.join('./build/', envName))
 }
 
 async function buildServer() {
@@ -73,11 +75,10 @@ async function buildServer() {
 
 async function buildClient() {
   await waitForProcess(spawn('npm', ['run', 'build', '--prefix', clientAppPath], defaultSpawnOptions))
-  await fs.remove(path.join(clientAppPath, 'build', '.env'))
 }
 
 async function runBuilt() {
-  await addRunBuiltEnv()
+  await doRunBuiltChanges()
   await waitForProcess(spawn('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], {...defaultSpawnOptions, cwd: './build/'}))
 }
 
@@ -93,7 +94,7 @@ function copyClientBuild() {
   if (fs.pathExistsSync(path.join(clientAppPath, 'build'))) {
     fs.emptyDirSync(buildWwwrootDir)
   }
-  return src(`${clientAppPath}/build/**/*`).pipe(dest(buildWwwrootDir))
+  return src(`${clientAppPath}/dist/**/*`).pipe(dest(buildWwwrootDir))
 }
 
 async function packageBuild() {
@@ -128,11 +129,15 @@ async function configureDotnetDevCert() {
   await waitForProcess(spawn('dotnet', ['dev-certs', 'https', '-t']))
 }
 
-async function addRunBuiltEnv() {
+async function doRunBuiltChanges() {
   const envPath = path.join(buildDir, '.env')
   await fs.outputFile(envPath, '\nASPNETCORE_ENVIRONMENT=Production', {flag: 'a'})
   await fs.outputFile(envPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, {flag: 'a'})
   await fs.outputFile(envPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, {flag: 'a'})
+  
+  const certFromPath = path.join('./cert/', process.env.DEV_CERT_NAME)
+  const certToPath = path.join(buildDir, process.env.DEV_CERT_NAME)
+  await fs.copySync(certFromPath, certToPath, {})
 }
 
 async function dbMigratorCommand(command) {

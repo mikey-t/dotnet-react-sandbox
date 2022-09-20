@@ -5,7 +5,7 @@
   "scripts": {
     "npmInstall": "npm install && npm install --prefix ./src/client",
     "syncEnvFiles": "gulp syncEnvFiles",
-    "client": "npm run dev --prefix ./src/client",
+    "client": "gulp syncEnvFiles && npm run dev --prefix ./src/client",
     "server": "dotnet watch --project ./src/WebServer/WebServer.csproj",
     "test:server": "dotnet test",
     "build:client": "gulp buildClient",
@@ -42,6 +42,7 @@
   },
   "devDependencies": {
     "@mikeyt23/node-cli-utils": "^1.3.0",
+    "dotenv": "^16.0.2",
     "fs-extra": "^10.1.0",
     "gulp": "^4.0.2",
     "which": "^2.0.2",

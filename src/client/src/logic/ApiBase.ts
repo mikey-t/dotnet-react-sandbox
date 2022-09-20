@@ -63,7 +63,7 @@ export default class ApiBase {
   private static getApiExceptionFromAxiosError(error: AxiosError): ApiException {
     if (error.response) {
       let code = error.response.status
-      const data = error.response.data
+      const data = error.response.data as any
 
       if (code === 400 && data.hasOwnProperty('title') && data.hasOwnProperty('errors')) {
         return ApiException.fromValidationExceptionResponseData(code, data)

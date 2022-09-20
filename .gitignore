@@ -9,9 +9,7 @@ deploy
 coverage
 obj
 .DS_Store
-**/.env*
-!/env/.env.client.template
-!/env/.env.server.template
+**/.env
 docker/pg
 cert/*.pfx
 cert/*.key

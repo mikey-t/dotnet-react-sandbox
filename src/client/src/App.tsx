@@ -40,7 +40,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline/>
       <BrowserRouter>
-        <GoogleAnalytics>
+        {/*<GoogleAnalytics>*/}
           <SnackbarProvider maxSnack={3} anchorOrigin={{vertical: 'bottom', horizontal: 'left',}} autoHideDuration={1500}>
             <AuthProvider>
               <Routes>
@@ -71,7 +71,7 @@ function App() {
               </Routes>
             </AuthProvider>
           </SnackbarProvider>
-        </GoogleAnalytics>
+        {/*</GoogleAnalytics>*/}
       </BrowserRouter>
     </ThemeProvider>
   )

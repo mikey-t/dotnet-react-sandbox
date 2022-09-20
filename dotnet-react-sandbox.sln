@@ -14,8 +14,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{3F9670B2-B2E1-4942-80D7-2E1BCF195C00}"
 	ProjectSection(SolutionItems) = preProject
 		docker\docker-compose.yml = docker\docker-compose.yml
-		env\.env.server = env\.env.server
-		env\.env.server.template = env\.env.server.template
 		cert\local.drs.mikeyt.net.crt = cert\local.drs.mikeyt.net.crt
 		cert\local.drs.mikeyt.net.key = cert\local.drs.mikeyt.net.key
 		cert\local.drs.mikeyt.net.pfx = cert\local.drs.mikeyt.net.pfx
@@ -27,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		LICENSE = LICENSE
 		package.json = package.json
 		README.md = README.md
+		.env = .env
+		.env.template = .env.template
 	EndProjectSection
 EndProject
 Global

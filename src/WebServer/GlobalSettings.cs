@@ -41,6 +41,9 @@ namespace WebServer
         [SettingInfo(DefaultValue = "-1", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments,ShouldLogValue = true)]
         PRE_DEPLOY_HTTPS_PORT,
         
+        [SettingInfo(ShouldLogValue = true)]
+        DEV_CERT_NAME,
+        
         // *********
         // Secrets *
         // *********

@@ -25,14 +25,17 @@ const argv = yargs(hideBin(process.argv)).argv;
 const which = require('which')
 require('dotenv').config()
 
+const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
+const lowerUnderscoreProjectName = projectName.toLowerCase().replace('-', '_')
+
 const buildDir = './build'
 const buildWwwrootDir = './build/wwwroot'
 const clientAppPath = './src/client'
 const serverAppPath = './src/WebServer'
-const tarballName = 'drs.tar.gz'
+const tarballName = `${lowerUnderscoreProjectName}.tar.gz`
 const dockerPath = './docker'
-const dockerProjectName = 'drs'
-const dockerDbContainerName = 'drs_postgres'
+const dockerProjectName = lowerUnderscoreProjectName
+const dockerDbContainerName = `${lowerUnderscoreProjectName}_postgres`
 const preDeployHttpPort = '3001'
 const preDeployHttpsPort = '3000'
 

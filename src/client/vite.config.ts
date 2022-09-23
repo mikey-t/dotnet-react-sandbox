@@ -7,6 +7,9 @@ export default ({mode}) => {
   process.env = {...process.env, ...loadEnv(mode, process.cwd(), '')};
   const clientPort = parseInt(process.env.DEV_CLIENT_PORT)
   const serverPort = parseInt(process.env.DEV_SERVER_PORT)
+  const devCertName = process.env.DEV_CERT_NAME
+  const siteUrlWithPort = process.env.SITE_URL
+  const host = siteUrlWithPort.substring(0, siteUrlWithPort.indexOf(':'))
   
   return {
     plugins: [react()],
@@ -19,9 +22,9 @@ export default ({mode}) => {
       css: true,
     },
     server: {
-      host: 'local.drs.mikeyt.net',
+      host: host,
       https: {
-        pfx: fs.readFileSync('../../cert/local.drs.mikeyt.net.pfx')
+        pfx: fs.readFileSync(`../../cert/${devCertName}`)
       },
       port: clientPort,
       strictPort: true,

@@ -26,16 +26,15 @@ const which = require('which')
 require('dotenv').config()
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
-const lowerUnderscoreProjectName = projectName.toLowerCase().replace('-', '_')
 
 const buildDir = './build'
 const buildWwwrootDir = './build/wwwroot'
 const clientAppPath = './src/client'
 const serverAppPath = './src/WebServer'
-const tarballName = `${lowerUnderscoreProjectName}.tar.gz`
+const tarballName = `${projectName}.tar.gz`
 const dockerPath = './docker'
-const dockerProjectName = lowerUnderscoreProjectName
-const dockerDbContainerName = `${lowerUnderscoreProjectName}_postgres`
+const dockerProjectName = projectName
+const dockerDbContainerName = `${projectName}_postgres`
 const preDeployHttpPort = '3001'
 const preDeployHttpsPort = '3000'
 

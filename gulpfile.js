@@ -171,6 +171,8 @@ async function opensslGenCert() {
 
   console.log('openssl is installed, continuing...')
 
+  fs.mkdirpSync('./cert')
+
   let url = argv['url']
   if (!url) {
     throw Error('Param \'url\' is required. Example: npm run opensslGenCert -- --url=local.your-site.com')

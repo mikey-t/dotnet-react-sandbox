@@ -16,7 +16,8 @@
   dotnetDbRemoveMigration
 } = require('@mikeyt23/node-cli-utils')
 const spawn = require('child_process').spawn
-const fs = require('fs-extra')
+const fse = require('fs-extra')
+const fs = require('fs')
 const {series, parallel, src, dest} = require('gulp')
 const path = require('path')
 const yargs = require('yargs/yargs')
@@ -64,15 +65,16 @@ async function syncEnvFiles() {
   await overwriteEnvFile(rootEnv, path.join(dockerPath, envName))
   await overwriteEnvFile(rootEnv, path.join(dbMigratorPath, envName))
   await overwriteEnvFile(rootEnv, path.join(clientAppPath, envName))
+  await writeServerTestEnv()
 
   await ensureBuildDir()
   await overwriteEnvFile(rootEnv, path.join('./build/', envName))
 }
 
 async function buildServer() {
-  fs.emptyDirSync(buildDir)
+  fse.emptyDirSync(buildDir)
   await dotnetPublish(serverAppPath, path.resolve(__dirname, buildDir))
-  await fs.remove(path.join(buildDir, '.env'))
+  await fse.remove(path.join(buildDir, '.env'))
 }
 
 async function buildClient() {
@@ -88,13 +90,13 @@ async function runBuilt() {
 // Helper Methods
 
 async function ensureBuildDir() {
-  fs.mkdirpSync(buildWwwrootDir)
+  fse.mkdirpSync(buildWwwrootDir)
 }
 
 // Important: this must not be marked async. In this case we want to return the stream object, not a promise.
 function copyClientBuild() {
-  if (fs.pathExistsSync(path.join(clientAppPath, 'build'))) {
-    fs.emptyDirSync(buildWwwrootDir)
+  if (fse.pathExistsSync(path.join(clientAppPath, 'build'))) {
+    fse.emptyDirSync(buildWwwrootDir)
   }
   return src(`${clientAppPath}/dist/**/*`).pipe(dest(buildWwwrootDir))
 }
@@ -114,11 +116,11 @@ async function throwIfDockerDependenciesNotUp() {
 async function emptyMigratorPublishDir() {
   const migratorPublishPath = path.join(__dirname, `${dbMigratorPath}/publish/`)
   console.log('emptying path: ' + migratorPublishPath)
-  fs.emptyDirSync(migratorPublishPath)
+  fse.emptyDirSync(migratorPublishPath)
 }
 
 async function removeEnvFromPublishedMigrator() {
-  await fs.remove(path.join(dbMigratorPath, 'publish/.env'))
+  await fse.remove(path.join(dbMigratorPath, 'publish/.env'))
 }
 
 async function createDbMigratorTarball() {
@@ -133,13 +135,13 @@ async function configureDotnetDevCert() {
 
 async function doRunBuiltChanges() {
   const envPath = path.join(buildDir, '.env')
-  await fs.outputFile(envPath, '\nASPNETCORE_ENVIRONMENT=Production', {flag: 'a'})
-  await fs.outputFile(envPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, {flag: 'a'})
-  await fs.outputFile(envPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, {flag: 'a'})
+  await fse.outputFile(envPath, '\nASPNETCORE_ENVIRONMENT=Production', {flag: 'a'})
+  await fse.outputFile(envPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, {flag: 'a'})
+  await fse.outputFile(envPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, {flag: 'a'})
   
   const certFromPath = path.join('./cert/', process.env.DEV_CERT_NAME)
   const certToPath = path.join(buildDir, process.env.DEV_CERT_NAME)
-  await fs.copySync(certFromPath, certToPath, {})
+  await fse.copySync(certFromPath, certToPath, {})
 }
 
 async function dbMigratorCommand(command) {
@@ -171,7 +173,7 @@ async function opensslGenCert() {
 
   console.log('openssl is installed, continuing...')
 
-  fs.mkdirpSync('./cert')
+  fse.mkdirpSync('./cert')
 
   let url = argv['url']
   if (!url) {
@@ -182,7 +184,7 @@ async function opensslGenCert() {
   const crtName = url + '.crt'
   const pfxName = url + '.pfx'
 
-  if (fs.pathExistsSync(path.join(__dirname, `cert/${pfxName}`))) {
+  if (fse.pathExistsSync(path.join(__dirname, `cert/${pfxName}`))) {
     throw Error(`./cert/${pfxName} already exists. Delete this first if you want to generate a new version.`)
   }
 
@@ -241,6 +243,37 @@ async function winInstallCert() {
 
   const args = ['Import-PfxCertificate', '-FilePath', certName, '-CertStoreLocation', 'Cert:\\LocalMachine\\Root']
   await waitForProcess(spawn('powershell', args, {...defaultSpawnOptions, cwd: 'cert'}))
+}
+
+async function writeServerTestEnv() {
+  const envPath = '.env'
+  const testEnvPath = 'src/WebServer.Test/.env'
+  const originalEnvString = fs.readFileSync(envPath, 'utf-8')
+  
+  let keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
+  
+  let newTestEnvString = ''
+  
+  for (let line of originalEnvString.split('\n')) {
+    if (!line || line.indexOf('=') === -1) {
+      continue
+    }
+
+    const key = line.substring(0, line.indexOf('='))
+    
+    if (!keepKeys.includes(key)) {
+      continue
+    }
+    
+    if (key === 'DB_NAME') {
+      const modifiedLine = line.replace('=', '=test_')
+      newTestEnvString += `${modifiedLine}\n`
+    } else {
+      newTestEnvString += `${line}\n`
+    }
+  }
+  
+  fs.writeFileSync(testEnvPath, newTestEnvString)
 }
 
 // ******************************

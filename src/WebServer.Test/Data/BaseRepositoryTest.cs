@@ -13,6 +13,7 @@ public class BaseRepositoryTest
 
     protected BaseRepositoryTest()
     {
+        DotEnv.Load();
         EnvironmentSettings = new EnvironmentSettings(new DefaultEnvironmentVariableProvider(), new DefaultSecretVariableProvider());
         EnvironmentSettings.AddSettings<TestSettings>();
         ConnectionStringProvider = new ConnectionStringProvider(EnvironmentSettings);

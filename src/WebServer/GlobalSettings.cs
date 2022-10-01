@@ -44,6 +44,9 @@ namespace WebServer
         [SettingInfo(ShouldLogValue = true)]
         DEV_CERT_NAME,
         
+        [SettingInfo(ShouldLogValue = true)]
+        DEV_SERVER_PORT,
+        
         // *********
         // Secrets *
         // *********

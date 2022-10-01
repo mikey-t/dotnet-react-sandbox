@@ -45,6 +45,11 @@ try
         });
     }
 
+    if (envSettings.IsLocal())
+    {
+        builder.WebHost.UseUrls($"https://localhost:{envSettings.GetInt(GlobalSettings.DEV_SERVER_PORT)}");
+    }
+
     DefaultTypeMap.MatchNamesWithUnderscores = true;
     SqlMapper.AddTypeHandler(new DateTimeHandler());
 

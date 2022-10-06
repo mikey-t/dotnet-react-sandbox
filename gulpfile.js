@@ -15,7 +15,7 @@
   dotnetDbAddMigration,
   dotnetDbRemoveMigration
 } = require('@mikeyt23/node-cli-utils')
-const {spawn, spawnSync} = require('child_process').spawn
+const {spawn, spawnSync} = require('child_process')
 const fse = require('fs-extra')
 const fs = require('fs')
 const {series, parallel, src, dest} = require('gulp')
@@ -177,6 +177,7 @@ async function opensslGenCert() {
     console.log('*****************************************************************')
     
     macOpensslPath = `${getBrewOpenslPath()}/bin/openssl`
+    console.log(`openssl path: ${macOpensslPath}`)
   }
 
   console.log('openssl is installed, continuing...')
@@ -219,7 +220,11 @@ async function opensslGenCert() {
     `"subjectAltName=DNS:${url},IP:127.0.0.1"`
   ]
 
-  await waitForProcess(spawn('openssl', genKeyAndCrtArgs, genCertSpawnArgs))
+  const cmd = process.platform !== 'darwin' ? 'openssl' : macOpensslPath
+
+  console.log('cmd: ' + cmd)
+
+  await waitForProcess(spawn(cmd, genKeyAndCrtArgs, genCertSpawnArgs))
 
   console.log('converting key and crt to pfx...')
 
@@ -235,8 +240,6 @@ async function opensslGenCert() {
     '-password',
     'pass:'
   ]
-  
-  const cmd = process.platform !== 'darwin' ? 'openssl' : macOpensslPath
 
   await waitForProcess(spawn(cmd, convertToPfxArgs, genCertSpawnArgs))
 }
@@ -253,7 +256,7 @@ function getBrewOpenslPath() {
     throw Error('unexpected output while attempting to find openssl')
   }
   
-  return output
+  return output.replace('\n', '')
 }
 
 async function winInstallCert() {

@@ -15,7 +15,7 @@
   dotnetDbAddMigration,
   dotnetDbRemoveMigration
 } = require('@mikeyt23/node-cli-utils')
-const spawn = require('child_process').spawn
+const {spawn, spawnSync} = require('child_process').spawn
 const fse = require('fs-extra')
 const fs = require('fs')
 const {series, parallel, src, dest} = require('gulp')
@@ -165,10 +165,18 @@ async function dbMigrationsList(dbContextName) {
 }
 
 async function opensslGenCert() {
-  // Check if openssl is installed
-  let resolved = which.sync('openssl', {nothrow: true})
-  if (!resolved) {
-    throw Error('openssl is required but was not found in the path')
+  // First check if openssl is installed
+  let macOpensslPath
+  if (process.platform !== 'darwin') {
+    if (!which.sync('openssl', {nothrow: true})) {
+      throw Error('openssl is required but was not found in the path')
+    }
+  } else {
+    console.log('*****************************************************************')
+    console.log('* Important: mac support requires openssl be installed via brew *')
+    console.log('*****************************************************************')
+    
+    macOpensslPath = `${getBrewOpenslPath()}/bin/openssl`
   }
 
   console.log('openssl is installed, continuing...')
@@ -227,8 +235,25 @@ async function opensslGenCert() {
     '-password',
     'pass:'
   ]
+  
+  const cmd = process.platform !== 'darwin' ? 'openssl' : macOpensslPath
 
-  await waitForProcess(spawn('openssl', convertToPfxArgs, genCertSpawnArgs))
+  await waitForProcess(spawn(cmd, convertToPfxArgs, genCertSpawnArgs))
+}
+
+function getBrewOpenslPath() {
+  let childProc = spawnSync('brew', ['--prefix', 'openssl'], { encoding: 'utf-8' })
+  if (childProc.error) {
+    throw Error('error attempting to find openssl installed by brew')
+  }
+
+  const output = childProc.stdout
+
+  if (!output || output.length === 0 || output.toLowerCase().startsWith('error')) {
+    throw Error('unexpected output while attempting to find openssl')
+  }
+  
+  return output
 }
 
 async function winInstallCert() {

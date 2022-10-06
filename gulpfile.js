@@ -257,9 +257,7 @@ function getBrewOpenslPath() {
 }
 
 async function winInstallCert() {
-  console.log('******************************')
-  console.log('* Requires admin permissions *')
-  console.log('******************************')
+  console.log('******************************\n* Requires admin permissions *\n******************************')
 
   let certName = argv['name']
   if (!certName) {
@@ -268,6 +266,20 @@ async function winInstallCert() {
 
   const args = ['Import-PfxCertificate', '-FilePath', certName, '-CertStoreLocation', 'Cert:\\LocalMachine\\Root']
   await waitForProcess(spawn('powershell', args, {...defaultSpawnOptions, cwd: 'cert'}))
+}
+
+async function linuxInstallCert() {
+  const instructions = `
+Automated linux cert install not supported (chrome does not use system certs without significant extra configuration).
+
+Manual Instructions:
+- In Chrome, go to chrome://settings/certificates
+- Select Authorities -> import
+- Select your generated .crt file from ./cert/ (if you haven't generated it, see the opensslGenCert command)
+- Check box for "Trust certificate for identifying websites"
+- Click OK
+- Reload site`
+  console.log(instructions)
 }
 
 async function writeServerTestEnv() {
@@ -357,3 +369,4 @@ exports.copyClientBuild = copyClientBuild
 exports.packageBuild = packageBuild
 exports.opensslGenCert = opensslGenCert
 exports.winInstallCert = winInstallCert
+exports.linuxInstallCert = linuxInstallCert

@@ -38,7 +38,8 @@
     "copyClientBuild": "gulp copyClientBuild",
     "packageBuild": "gulp packageBuild",
     "opensslGenCert": "gulp opensslGenCert",
-    "winInstallCert": "gulp winInstallCert"
+    "winInstallCert": "gulp winInstallCert",
+    "linuxInstallCert": "gulp linuxInstallCert"
   },
   "devDependencies": {
     "@mikeyt23/node-cli-utils": "^1.3.0",

@@ -1,6 +1,6 @@
 # dotnet-react-sandbox
 
-It's an app! A sandbox app! Project root package.json script commands and gulpfile.js tasks contain all the automated operations available for the project.
+It's an app! A sandbox app! Project root `package.json` script commands and `gulpfile.js` tasks contain all the automated operations available for the project.
 
 ## Run Locally
 
@@ -17,17 +17,19 @@ Then navigate to https://local.drs.mikeyt.net:3000.
 
 ## Initial Development Setup
 
-Pre-requisite steps:
+Pre-requisites:
 - Node (version >= 16.x)
 - .NET 6 SDK
 - Docker
 - Openssl
-  - Windows: install via chocolatey in admin shell.
-  - Linux: probably already installed. If not, google it.
-  - Mac: install via brew.
+  - Windows: install via chocolatey in admin shell
+  - Linux: probably already installed (if not, google it)
+  - Mac: install via brew (the pre-installed LibreSSL version will NOT work)
 - PgAdmin (optional DB management tool)
 
-Setup steps:
+Automatic setup (experimental generator script): [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator)
+
+Manual setup:
 - Clone repo
 - Run `npm run npmInstall` (runs npm install in root and in src/client)
 - Run `npm run installDotnetEfTool` (or to update it: `npm run updateDotnetEfTool`)
@@ -39,10 +41,7 @@ Setup steps:
 - Run `npm run bothMigrate`
 - Create hosts entry (`C:\Windows\System32\drivers\etc\hosts` on windows) mapping `127.0.0.1` to `local.drs.mikeyt.net`
 - Generate local self-signed ssl certificate with `npm run opensslGenCert -- --url=local.drs.mikeyt.net`
-- Add cert to local trusted cert store
-  - Windows: `npm run winInstallCert -- --name=local.drs.mikeyt.net.pfx`
-  - Mac: (?? - manually from ./cert/local.drs.mikeyt.net.pfx)
-  - Linux: (?? - manually from ./cert/local.drs.mikeyt.net.pfx)
+- Add cert to local trusted cert store (see [Certificate Install](#certificate-install) section below)
 - In 2 separate terminals, run
   - `npm run server`
   - `npm run client`
@@ -51,6 +50,37 @@ Setup steps:
 - (optional) Open PgAdmin and add new host using `localhost` and credentials from `./env/.env.server` (`DB_ROOT_USER` and `DB_ROOT_PASSWORD`)
 
 Note that login with google and microsoft won't work without the necessary API credentials in `.env.server`.
+
+## Certificate Install
+
+### Linux Cert Install
+
+Chrome on linux does not use the normal system certificates (the `ca-certificates` package won't affect chrome since chrome does not use /usr/local/share/ca-certificates). Although it's possible to install a few things and configure a Linux system so scripted cert install is possible, it's also pretty easy to just install it manually by following these steps:
+- In Chrome, go to chrome://settings/certificates (or navigate there via settings -> Privacy and Security -> Advanced -> Manage Certificates)
+- Select Authorities -> import
+- Select your generated .crt file from ./cert/ (if you haven't generated it, see the opensslGenCert command)
+- Check box that says "Trust certificate for identifying websites"
+- Click OK
+
+### MacOS Cert Install
+
+One way to install a cert on newer macOS versions is the following:
+
+- Open your new project's `./cert` directory in finder
+- Open the keychain and navigate to the certificates tab
+- Select `System` certificates
+- Back in the `./cert` directory, double-click the generated `.crt` file - this should install it in the system certificates keychain area
+- After it's imported into system certificates you still have to tell it to trust the certificate (*eye roll*), which can be done by double-clicking the certificate in the keychain window, expanding the `Trust` section and changing the dropdown `When using this certificate:` to `Always Trust`
+
+Another macOS certificate note: newer versions of macOS require that self-signed certificates contain ext data with domain/IP info, and yet the version of openssl installed by default (LibreSSL 2.8.3) does not support the `-addext` option (**bravo** Apple! - really, just - top notch work there). On top of this, newer versions of macOS prevent scripted installation of any certificate to the trusted store without also modifying system security policy files (different depending on what macOS version and for whatever reason root permission is not the only requirement - go figure).
+
+### Windows Cert Install
+
+Use the provided npm command: `npm run winInstallCert -- --name=local.your-site.com.pfx`. If you ran the [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator) script then it was installed automatically for you. The powershell command used is `Import-PfxCertificate`. If you want to use this yourself for other certificates, you can import to the trusted store in a terminal with elevated permissions by running something like this:
+
+If you didn't generate a cert already, you'll ned to generate one first with something like this:
+
+`npm run opensslGenCert -- --url=local.your-site.com`
 
 ## Database Migrations
 
@@ -62,7 +92,7 @@ Yarn sometimes had issues handling the SIGINT signal from ctrl-c and crashed the
 
 ## React Client App
 
-Instead of create-react-app, I'm going with [vite](https://github.com/vitejs/vite). Create react app is convenient but ULTRA slow (HMR is kind of slow and production builds are just ridiculous). Vite has extremely fast HMR and production builds are sometimes 4 times faster than CRA. There are some caveats, but vite has massive community support due to it being the go-to toolbox for Vue now.
+Instead of create-react-app, I'm going with [vite](https://github.com/vitejs/vite). Create react app is convenient but ULTRA slow (HMR is kind of slow and production builds are just ridiculous). Vite has extremely fast HMR and production builds are sometimes 4 times faster than CRA. There are some caveats, but vite has massive community support due to it now being the go-to tool for Vue.
 
 ## Deployment
 
@@ -85,19 +115,14 @@ Access swagger UI at http://localhost:5001/api or the json at http://localhost:5
 
 ## TODO
 
-- Add in vuetest for client unit testing.
-- More client code cleanup.
-- Functionality to enable/disable social logins so fresh projects don't have console errors and broken social login buttons before setting up Google/Microsoft application credentials.
-- Functionality to enable/disable email verification functionality so you can register new accounts without setting up email sending.
-- Docker config/plumbing to generate a deployable image.
-- Move out boilerplate gulpfile commands to something like CRA's react-scripts.
-- Generator scripts:
-  - Script that sets up dependencies (ensure windows/mac/linux support)
-  - Script that takes in things like project name and local url and completely sets up a new project
+- Add in vuetest for client unit testing
+- More client code cleanup
+- Functionality to enable/disable social logins so fresh projects don't have console errors and broken social login buttons before setting up Google/Microsoft application credentials
+- Functionality to enable/disable email verification functionality so you can register new accounts without setting up email sending
+- Docker config/plumbing to generate a deployable image
+- Move out boilerplate gulpfile commands to something like CRA's react-scripts, or Vue's CLI
 - More docs on how to do various things:
   - How to create a new controller
   - Dependency injection notes
-  - Use of main and test DB to easily write data based unit tests without altering main DB data and with the ability to safely run destructive data unit tests without breaking anything.
-
-## Maybe TODO
-- Rip out custom account schema in favor of built-in .NET Identity.
+  - Use of main and test DB to easily write data based unit tests without altering main DB data and with the ability to safely run destructive data unit tests without breaking anything
+- Rip out custom account schema in favor of built-in .NET Identity (maybe)

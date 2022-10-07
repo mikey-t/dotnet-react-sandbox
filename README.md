@@ -4,14 +4,15 @@ It's an app! A sandbox app! Project root `package.json` script commands and `gul
 
 ## Run Locally
 
-(for first time setup, follow the instructions under "Initial Development Setup")
+For first time setup, follow the instructions under [Initial Development Setup](#initial-development-setup).
 
-- First run `npm run dockerUp`
+First run `npm run dockerUp`
 
 Then in 2 terminals:
 
-- `npm run server`
-- `npm run client`
+`npm run server`
+
+`npm run client`
 
 Then navigate to https://local.drs.mikeyt.net:3000.
 

@@ -176,7 +176,7 @@ async function opensslGenCert() {
     console.log('* Important: mac support requires openssl be installed via brew *')
     console.log('*****************************************************************')
     
-    macOpensslPath = `${getBrewOpenslPath()}/bin/openssl`
+    macOpensslPath = `${getBrewOpensslPath()}/bin/openssl`
     console.log(`openssl path: ${macOpensslPath}`)
   }
 
@@ -201,24 +201,7 @@ async function opensslGenCert() {
 
   const genCertSpawnArgs = {...defaultSpawnOptions, cwd: 'cert'}
 
-  const genKeyAndCrtArgs = [
-    'req',
-    '-x509',
-    '-newkey',
-    'rsa:4096',
-    '-sha256',
-    '-days',
-    '3650',
-    '-nodes',
-    '-keyout',
-    keyName,
-    '-out',
-    crtName,
-    '-subj',
-    `"/CN=${url}"`,
-    '-addext',
-    `"subjectAltName=DNS:${url},IP:127.0.0.1"`
-  ]
+  const genKeyAndCrtArgs = `req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout ${keyName} -out ${crtName} -subj "/CN=${url}" -addext "subjectAltName=DNS:${url},IP:127.0.0.1"`.split(' ')
 
   const cmd = process.platform !== 'darwin' ? 'openssl' : macOpensslPath
 
@@ -228,23 +211,12 @@ async function opensslGenCert() {
 
   console.log('converting key and crt to pfx...')
 
-  const convertToPfxArgs = [
-    'pkcs12',
-    '-export',
-    '-out',
-    pfxName,
-    '-inkey',
-    keyName,
-    '-in',
-    crtName,
-    '-password',
-    'pass:'
-  ]
+  const convertToPfxArgs = `pkcs12 -export -out ${pfxName} -inkey ${keyName} -in ${crtName} -password pass:`.split(' ')
 
   await waitForProcess(spawn(cmd, convertToPfxArgs, genCertSpawnArgs))
 }
 
-function getBrewOpenslPath() {
+function getBrewOpensslPath() {
   let childProc = spawnSync('brew', ['--prefix', 'openssl'], { encoding: 'utf-8' })
   if (childProc.error) {
     throw Error('error attempting to find openssl installed by brew')

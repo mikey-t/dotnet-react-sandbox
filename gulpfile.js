@@ -240,7 +240,12 @@ async function winInstallCert() {
   }
 
   const args = ['Import-PfxCertificate', '-FilePath', certName, '-CertStoreLocation', 'Cert:\\LocalMachine\\Root']
-  await waitForProcess(spawn('powershell', args, {...defaultSpawnOptions, cwd: 'cert'}))
+  try {
+    await waitForProcess(spawn('powershell', args, {...defaultSpawnOptions, cwd: 'cert'}))
+  } catch {
+    console.log('error installing cert with powershell - trying pwsh instead...')
+    await waitForProcess(spawn('pwsh', ['-Command', ...args], {...defaultSpawnOptions, cwd: 'cert'}))
+  }
 }
 
 async function linuxInstallCert() {

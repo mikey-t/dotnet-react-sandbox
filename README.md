@@ -19,7 +19,7 @@ Then navigate to https://local.drs.mikeyt.net:3000.
 ## Initial Development Setup
 
 Pre-requisites:
-- Node (version >= 16.x)
+- Node.js version 16.x (greater than 16 will not work due to certificate issues)
 - .NET 6 SDK
 - Docker
 - Openssl

@@ -211,7 +211,7 @@ async function opensslGenCert() {
 
   console.log('converting key and crt to pfx...')
 
-  const convertToPfxArgs = `pkcs12 -export -out ${pfxName} -inkey ${keyName} -in ${crtName} -password pass:`.split(' ')
+  const convertToPfxArgs = `pkcs12 -certpbe AES-256-CBC -export -out ${pfxName} -aes256 -inkey ${keyName} -in ${crtName} -password pass:`.split(' ')
 
   await waitForProcess(spawn(cmd, convertToPfxArgs, genCertSpawnArgs))
 }

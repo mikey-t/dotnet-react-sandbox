@@ -39,7 +39,7 @@ Manual setup:
   - `./env/.env.server`
 - Run `npm run dockerUp`
 - Run `npm run dbInitialCreate`
-- Run `npm run bothMigrate`
+- Run `npm run bothDbMigrate`
 - Create hosts entry (`C:\Windows\System32\drivers\etc\hosts` on windows) mapping `127.0.0.1` to `local.drs.mikeyt.net`
 - Generate local self-signed ssl certificate with `npm run opensslGenCert -- --url=local.drs.mikeyt.net`
 - Add cert to local trusted cert store (see [Certificate Install](#certificate-install) section below)

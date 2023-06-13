@@ -239,13 +239,32 @@ async function winInstallCert() {
     throw Error('Param cert \'name\' is required. Example: npm run winInstallCert -- --name=local.your-site.com.pfx')
   }
 
-  const args = ['Import-PfxCertificate', '-FilePath', certName, '-CertStoreLocation', 'Cert:\\LocalMachine\\Root']
-  try {
-    await waitForProcess(spawn('powershell', args, {...defaultSpawnOptions, cwd: 'cert'}))
-  } catch {
-    console.log('error installing cert with powershell - trying pwsh instead...')
-    await waitForProcess(spawn('pwsh', ['-Command', ...args], {...defaultSpawnOptions, cwd: 'cert'}))
+  if (!certName.endsWith('.pfx')) {
+    certName += '.pfx'
   }
+
+  const certPath = path.join(__dirname, `cert/${certName}`)
+
+  if (!fse.pathExistsSync(certPath)) {
+    throw Error(`File ${certPath} does not exist. Generate this first if you want to install it.`)
+  }
+
+  const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Import-PfxCertificate -FilePath '${certPath}' -CertStoreLocation Cert:\\LocalMachine\\Root`
+
+  await waitForProcess(spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand]))
+}
+
+async function winUninstallCert() {
+  console.log('******************************\n* Requires admin permissions *\n******************************')
+
+  let certSubject = argv['subject']
+  if (!certSubject) {
+    throw Error('Param cert \'subject\' is required. Example: npm run winUninstallCert -- --subject=local.your-site.com')
+  }
+
+  const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -match '${certSubject}' } | Remove-Item`;
+
+  await waitForProcess(spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand]))
 }
 
 async function linuxInstallCert() {
@@ -349,4 +368,5 @@ exports.copyClientBuild = copyClientBuild
 exports.packageBuild = packageBuild
 exports.opensslGenCert = opensslGenCert
 exports.winInstallCert = winInstallCert
+exports.winUninstallCert = winUninstallCert
 exports.linuxInstallCert = linuxInstallCert

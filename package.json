@@ -39,6 +39,7 @@
     "packageBuild": "gulp packageBuild",
     "opensslGenCert": "gulp opensslGenCert",
     "winInstallCert": "gulp winInstallCert",
+    "winUninstallCert": "gulp winUninstallCert",
     "linuxInstallCert": "gulp linuxInstallCert"
   },
   "devDependencies": {

@@ -41,7 +41,7 @@ Manual setup:
 - Run `npm run dbInitialCreate`
 - Run `npm run bothDbMigrate`
 - Create hosts entry (`C:\Windows\System32\drivers\etc\hosts` on windows) mapping `127.0.0.1` to `local.drs.mikeyt.net`
-- Generate local self-signed ssl certificate with `npm run opensslGenCert -- --url=local.drs.mikeyt.net`
+- Generate local self-signed ssl certificate with `npm run generateCert -- --url=local.drs.mikeyt.net`
 - Add cert to local trusted cert store (see [Certificate Install](#certificate-install) section below)
 - In 2 separate terminals, run
   - `npm run server`
@@ -77,11 +77,11 @@ Another macOS certificate note: newer versions of macOS require that self-signed
 
 ### Windows Cert Install
 
-Use the provided npm command: `npm run winInstallCert -- --name=local.your-site.com.pfx`. If you ran the [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator) script then it was installed automatically for you. The powershell command used is `Import-PfxCertificate`. If you want to use this yourself for other certificates, you can import to the trusted store in a terminal with elevated permissions by running something like this:
+Use the provided npm command: `npm run winInstallCert -- --url=local.your-site.com`. If you ran the [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator) script then it was installed automatically for you. The powershell command used is `Import-PfxCertificate`. If you want to use this yourself for other certificates, you can import to the trusted store in a terminal with elevated permissions by running something like this:
 
 If you didn't generate a cert already, you'll ned to generate one first with something like this:
 
-`npm run opensslGenCert -- --url=local.your-site.com`
+`npm run generateCert -- --url=local.your-site.com`
 
 ## Database Migrations
 

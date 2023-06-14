@@ -37,13 +37,13 @@
     "updateDotnetEfTool": "dotnet tool update --global dotnet-ef",
     "copyClientBuild": "gulp copyClientBuild",
     "packageBuild": "gulp packageBuild",
-    "opensslGenCert": "gulp opensslGenCert",
+    "generateCert": "gulp generateCert",
     "winInstallCert": "gulp winInstallCert",
     "winUninstallCert": "gulp winUninstallCert",
     "linuxInstallCert": "gulp linuxInstallCert"
   },
   "devDependencies": {
-    "@mikeyt23/node-cli-utils": "^1.3.1",
+    "@mikeyt23/node-cli-utils": "^1.4.0",
     "dotenv": "^16.0.3",
     "fs-extra": "^11.1.1",
     "gulp": "^4.0.2",

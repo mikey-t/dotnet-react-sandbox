@@ -13,15 +13,19 @@
   dotnetDbMigrationsList,
   dotnetDbMigrate,
   dotnetDbAddMigration,
-  dotnetDbRemoveMigration
+  dotnetDbRemoveMigration,
+  generateCertWithOpenSsl,
+  winInstallCert,
+  winUninstallCert,
+  linuxInstallCert
 } = require('@mikeyt23/node-cli-utils')
-const {spawn, spawnSync} = require('child_process')
+const { spawn, spawnSync } = require('child_process')
 const fse = require('fs-extra')
 const fs = require('fs')
-const {series, parallel, src, dest} = require('gulp')
+const { series, parallel, src, dest } = require('gulp')
 const path = require('path')
 const yargs = require('yargs/yargs')
-const {hideBin} = require('yargs/helpers')
+const { hideBin } = require('yargs/helpers')
 const argv = yargs(hideBin(process.argv)).argv;
 const which = require('which')
 require('dotenv').config()
@@ -83,7 +87,7 @@ async function buildClient() {
 
 async function runBuilt() {
   await doRunBuiltChanges()
-  await waitForProcess(spawn('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], {...defaultSpawnOptions, cwd: './build/'}))
+  await waitForProcess(spawn('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { ...defaultSpawnOptions, cwd: './build/' }))
 }
 
 // **************
@@ -135,10 +139,10 @@ async function configureDotnetDevCert() {
 
 async function doRunBuiltChanges() {
   const envPath = path.join(buildDir, '.env')
-  await fse.outputFile(envPath, '\nASPNETCORE_ENVIRONMENT=Production', {flag: 'a'})
-  await fse.outputFile(envPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, {flag: 'a'})
-  await fse.outputFile(envPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, {flag: 'a'})
-  
+  await fse.outputFile(envPath, '\nASPNETCORE_ENVIRONMENT=Production', { flag: 'a' })
+  await fse.outputFile(envPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, { flag: 'a' })
+  await fse.outputFile(envPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, { flag: 'a' })
+
   const certFromPath = path.join('./cert/', process.env.DEV_CERT_NAME)
   const certToPath = path.join(buildDir, process.env.DEV_CERT_NAME)
   await fse.copySync(certFromPath, certToPath, {})
@@ -164,143 +168,58 @@ async function dbMigrationsList(dbContextName) {
   await dotnetDbMigrationsList(dbContextName, dbMigratorPath)
 }
 
-async function opensslGenCert() {
-  // First check if openssl is installed
-  let macOpensslPath
-  if (process.platform !== 'darwin') {
-    if (!which.sync('openssl', {nothrow: true})) {
-      throw Error('openssl is required but was not found in the path')
-    }
-  } else {
-    console.log('*****************************************************************')
-    console.log('* Important: mac support requires openssl be installed via brew *')
-    console.log('*****************************************************************')
-    
-    macOpensslPath = `${getBrewOpensslPath()}/bin/openssl`
-    console.log(`openssl path: ${macOpensslPath}`)
-  }
-
-  console.log('openssl is installed, continuing...')
-
-  fse.mkdirpSync('./cert')
-
+async function generateCertWrapper() {
   let url = argv['url']
   if (!url) {
-    throw Error('Param \'url\' is required. Example: npm run opensslGenCert -- --url=local.your-site.com')
+    throw Error('Param \'url\' is required. Example: npm run generateCert -- --url=local.acme.com')
   }
 
-  const keyName = url + '.key'
-  const crtName = url + '.crt'
-  const pfxName = url + '.pfx'
-
-  if (fse.pathExistsSync(path.join(__dirname, `cert/${pfxName}`))) {
-    throw Error(`./cert/${pfxName} already exists. Delete this first if you want to generate a new version.`)
-  }
-
-  console.log(`attempting to generate cert ${pfxName}`)
-
-  const genCertSpawnArgs = {...defaultSpawnOptions, cwd: 'cert'}
-
-  const genKeyAndCrtArgs = `req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout ${keyName} -out ${crtName} -subj "/CN=${url}" -addext "subjectAltName=DNS:${url},IP:127.0.0.1"`.split(' ')
-
-  const cmd = process.platform !== 'darwin' ? 'openssl' : macOpensslPath
-
-  console.log('cmd: ' + cmd)
-
-  await waitForProcess(spawn(cmd, genKeyAndCrtArgs, genCertSpawnArgs))
-
-  console.log('converting key and crt to pfx...')
-
-  const convertToPfxArgs = `pkcs12 -certpbe AES-256-CBC -export -out ${pfxName} -aes256 -inkey ${keyName} -in ${crtName} -password pass:`.split(' ')
-
-  await waitForProcess(spawn(cmd, convertToPfxArgs, genCertSpawnArgs))
+  await generateCertWithOpenSsl(url)
 }
 
-function getBrewOpensslPath() {
-  let childProc = spawnSync('brew', ['--prefix', 'openssl'], { encoding: 'utf-8' })
-  if (childProc.error) {
-    throw Error('error attempting to find openssl installed by brew')
+async function winInstallCertWrapper() {
+  let url = argv['url']
+  if (!url) {
+    throw Error('Param \'url\' is required. Example: npm run winInstallCert -- --name=local.your-site.com')
   }
 
-  const output = childProc.stdout
-
-  if (!output || output.length === 0 || output.toLowerCase().startsWith('error')) {
-    throw Error('unexpected output while attempting to find openssl')
-  }
-  
-  return output.replace('\n', '')
+  await winInstallCert(url)
 }
 
-async function winInstallCert() {
-  console.log('******************************\n* Requires admin permissions *\n******************************')
-
-  let certName = argv['name']
-  if (!certName) {
-    throw Error('Param cert \'name\' is required. Example: npm run winInstallCert -- --name=local.your-site.com.pfx')
-  }
-
-  if (!certName.endsWith('.pfx')) {
-    certName += '.pfx'
-  }
-
-  const certPath = path.join(__dirname, `cert/${certName}`)
-
-  if (!fse.pathExistsSync(certPath)) {
-    throw Error(`File ${certPath} does not exist. Generate this first if you want to install it.`)
-  }
-
-  const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Import-PfxCertificate -FilePath '${certPath}' -CertStoreLocation Cert:\\LocalMachine\\Root`
-
-  await waitForProcess(spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand]))
-}
-
-async function winUninstallCert() {
-  console.log('******************************\n* Requires admin permissions *\n******************************')
-
-  let certSubject = argv['subject']
+async function winUninstallCertWrapper() {
+  let certSubject = argv['url']
   if (!certSubject) {
-    throw Error('Param cert \'subject\' is required. Example: npm run winUninstallCert -- --subject=local.your-site.com')
+    throw Error('Param \'url\' is required. Example: npm run winUninstallCert -- --url=local.your-site.com')
   }
 
-  const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -match '${certSubject}' } | Remove-Item`;
-
-  await waitForProcess(spawn('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand]))
+  await winUninstallCert(certSubject)
 }
 
-async function linuxInstallCert() {
-  const instructions = `
-Automated linux cert install not supported (chrome does not use system certs without significant extra configuration).
-
-Manual Instructions:
-- In Chrome, go to chrome://settings/certificates
-- Select Authorities -> import
-- Select your generated .crt file from ./cert/ (if you haven't generated it, see the opensslGenCert command)
-- Check box for "Trust certificate for identifying websites"
-- Click OK
-- Reload site`
-  console.log(instructions)
+// This doesn't actually install anything - it just dumps out instructions for how to do it manually...
+async function linuxInstallCertWrapper() {
+  linuxInstallCert()
 }
 
 async function writeServerTestEnv() {
   const envPath = '.env'
   const testEnvPath = 'src/WebServer.Test/.env'
   const originalEnvString = fs.readFileSync(envPath, 'utf-8')
-  
+
   let keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
-  
+
   let newTestEnvString = ''
-  
+
   for (let line of originalEnvString.split('\n')) {
     if (!line || line.indexOf('=') === -1) {
       continue
     }
 
     const key = line.substring(0, line.indexOf('='))
-    
+
     if (!keepKeys.includes(key)) {
       continue
     }
-    
+
     if (key === 'DB_NAME') {
       const modifiedLine = line.replace('=', '=test_')
       newTestEnvString += `${modifiedLine}\n`
@@ -308,7 +227,7 @@ async function writeServerTestEnv() {
       newTestEnvString += `${line}\n`
     }
   }
-  
+
   fs.writeFileSync(testEnvPath, newTestEnvString)
 }
 
@@ -366,7 +285,7 @@ exports.syncEnvFiles = syncEnvFiles
 exports.configureDotnetDevCert = configureDotnetDevCert
 exports.copyClientBuild = copyClientBuild
 exports.packageBuild = packageBuild
-exports.opensslGenCert = opensslGenCert
-exports.winInstallCert = winInstallCert
-exports.winUninstallCert = winUninstallCert
-exports.linuxInstallCert = linuxInstallCert
+exports.generateCert = generateCertWrapper
+exports.winInstallCert = winInstallCertWrapper
+exports.winUninstallCert = winUninstallCertWrapper
+exports.linuxInstallCert = linuxInstallCertWrapper

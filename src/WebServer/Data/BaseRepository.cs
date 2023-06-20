@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using MikeyT.EnvironmentSettingsNS.Interface;
+using Npgsql;
 using WebServer.Logic;
 
 namespace WebServer.Data;
@@ -23,5 +24,12 @@ public class BaseRepository
         }
 
         return ConnectionString;
+    }
+
+    protected async Task<NpgsqlConnection> GetConnection()
+    {
+        var connection = new NpgsqlConnection(ConnectionString);
+        // Using async syntax so "await using var" works when calling this
+        return await Task.FromResult(connection);
     }
 }

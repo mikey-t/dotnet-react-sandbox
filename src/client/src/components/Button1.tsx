@@ -20,8 +20,7 @@ export default function Button1(props: Button1Props) {
         alignItems: 'center',
         fontSize: '16px',
         textTransform: 'none',
-        width: 1,
-        fontWeight: 900
+        width: 1
       },
         ...(!!props.sx ? Array.isArray(props.sx) ? props.sx : [props.sx] : [])
       ]}

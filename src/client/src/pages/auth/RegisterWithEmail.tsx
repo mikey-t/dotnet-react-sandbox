@@ -12,7 +12,7 @@ import Alert from '@mui/material/Alert'
 
 const api = new AccountApi()
 
-export default function Register() {
+export default function RegisterWithEmail() {
   const [firstName, setFirstName] = useState<string>('')
   const [lastName, setLastName] = useState<string>('')
   const [email, setEmail] = useState<string>('')

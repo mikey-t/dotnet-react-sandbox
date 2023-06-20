@@ -13,7 +13,7 @@ import RequireAuth from './components/auth/RequireAuth'
 import RequireNotAuth from './components/auth/RequireNotAuth'
 import Login from './pages/auth/Login'
 import SignUp from './pages/auth/SignUp'
-import Register from './pages/auth/Register'
+import RegisterWithEmail from './pages/auth/RegisterWithEmail'
 import VerifyEmail from './pages/auth/VerifyEmail'
 import RegisterNext from './pages/auth/RegisterNext'
 import RegisterResendEmail from './pages/auth/RegisterResendEmail'
@@ -28,6 +28,10 @@ import AdminLayout from './layout/AdminLayout'
 import AdminHome from './pages/admin/AdminHome'
 import Users from './pages/admin/Users'
 import Whitelist from './pages/admin/Whitelist'
+import '@fontsource/roboto/300.css'
+import '@fontsource/roboto/400.css'
+import '@fontsource/roboto/500.css'
+import '@fontsource/roboto/700.css'
 
 const theme = createTheme({
   palette: {
@@ -48,7 +52,7 @@ function App() {
                   <Route index element={<Home/>}/>
                   <Route path="/login" element={<RequireNotAuth><Login/></RequireNotAuth>}/>
                   <Route path="/sign-up" element={<RequireNotAuth><SignUp/></RequireNotAuth>}/>
-                  <Route path="/register" element={<RequireNotAuth><Register/></RequireNotAuth>}/>
+                  <Route path="/register" element={<RequireNotAuth><RegisterWithEmail/></RequireNotAuth>}/>
                   <Route path="/verify-email" element={<VerifyEmail/>}/>
                   <Route path="/register-next" element={<RequireNotAuth><RegisterNext/></RequireNotAuth>}/>
                   <Route path="/register-resend-email" element={<RequireNotAuth><RegisterResendEmail/></RequireNotAuth>}/>

@@ -1,12 +1,12 @@
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import {Link, useLocation, useNavigate} from 'react-router-dom'
-import {useAuth} from '../../components/auth/AuthProvider'
-import React, {useEffect, useState} from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../components/auth/AuthProvider'
+import React, { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import AccountApi from '../../logic/AccountApi'
-import {Configuration, PublicClientApplication} from '@azure/msal-browser'
+import { Configuration, PublicClientApplication } from '@azure/msal-browser'
 import MuiLink from '@mui/material/Link'
 import LoadingBackdrop from '../../components/LoadingBackdrop'
 import Container from '@mui/material/Container'
@@ -23,7 +23,7 @@ const msalInstance = new PublicClientApplication(msalConfig)
 export default function SignUp() {
   const auth = useAuth()
   const navigate = useNavigate()
-  const {state} = useLocation() as any
+  const { state } = useLocation() as any
   const [socialLoginError, setSocialLoginError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
 
@@ -38,7 +38,7 @@ export default function SignUp() {
       }
       const user = res.data!
       auth.login(user, () => {
-        navigate(from, {replace: true})
+        navigate(from, { replace: true })
       })
     }).catch(err => {
       console.log('google login error', err)
@@ -68,7 +68,7 @@ export default function SignUp() {
       }
       const user = authResponse.data!
       auth.login(user, () => {
-        navigate(from, {replace: true})
+        navigate(from, { replace: true })
       })
     } catch (err) {
       console.log('error opening MS login popup', err)
@@ -107,61 +107,56 @@ export default function SignUp() {
 
   return (
     <>
-      <LoadingBackdrop loading={loading}/>
+      <LoadingBackdrop loading={loading} />
 
-      <Grid container sx={{marginTop: 5, display: 'inline-flex', flexDirection:'column', alignItems: 'center', justifyContent:'left'}}>
-          <Box>
-            <Alert severity="info">This site is in Alpha. You may not register or login unless you have received an
-              invite.</Alert>
+      <Grid container sx={{ marginTop: 5, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'left' }}>
+        <Box>
+          <Alert severity="info">This site is in Alpha. You may not register or login unless you have received an
+            invite.</Alert>
+        </Box>
+        <Box>
+          <Typography sx={{ my: 3 }} variant="h4" gutterBottom={true}>
+            Sign Up
+          </Typography>
+        </Box>
+        <Typography variant='body1' sx={{ mb: 2, maxWidth: '400px', textAlign: 'center' }}> *By signing up you agree to
+          <MuiLink to="/terms" component={Link} style={{ textDecoration: "none" }}> Terms,</MuiLink>
+          <MuiLink to="/privacy" component={Link} style={{ textDecoration: "none" }}> Privacy </MuiLink> and
+          <MuiLink to="/content" component={Link} style={{ textDecoration: "none" }}> Content Policy. </MuiLink>
+        </Typography>
+
+        <Grid item xs={12}>
+          <Box sx={{ width: '250px' }}>
+            <Box id="login-with-google"></Box>
+            {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
           </Box>
-          <Box>
-            <Typography sx={{my: 3}} variant="h4" gutterBottom={true}>
-              Sign Up
-            </Typography>
-          </Box>
-            <Typography variant='body1' sx={{mb: 2, maxWidth:'400px', textAlign:'center'}}> *By signing up you agree to
-              <MuiLink to="/terms" component={Link} style={{textDecoration: "none"}}> Terms,</MuiLink>
-              <MuiLink to="/privacy" component={Link} style={{textDecoration: "none"}}> Privacy </MuiLink> and
-              <MuiLink to="/content" component={Link} style={{textDecoration: "none"}}> Content Policy. </MuiLink>
-            </Typography>
-         
-          <Grid item xs={12}>
-            <Box sx={{width: '250px'}}>
-              <Box id="login-with-google"></Box>
-              {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
-            </Box>
-          </Grid>
-          <Grid item xs={12}>
-            <Box
-              component="img"
-              sx={{
-                width: '244px',
-                pt: 1,
-                cursor: 'pointer'
-              }}
-              src='/images/ms-login.svg'
-              alt='ms-login'
-              onClick={msLogin}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom={true} sx={{mt: 2}}>OR
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Box sx={{maxWidth: '245px', mb: 2}}>
-              <Button1 onClick={_ => navigate(`/register`)}>Register with Email</Button1>
-            </Box>
-           
-              
-                <Typography>
-                  Already have an account? <MuiLink to="/login" component={Link} style={{textDecoration: "none"}}>Login</MuiLink>
-                </Typography>
-            
-            
-          </Grid>
         </Grid>
-     
+        <Grid item xs={12}>
+          <Box
+            component="img"
+            sx={{
+              width: '244px',
+              pt: 1,
+              cursor: 'pointer'
+            }}
+            src='/images/ms-login.svg'
+            alt='ms-login'
+            onClick={msLogin}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          <Box sx={{ maxWidth: '245px', mb: 2 }}>
+            <Button1 onClick={_ => navigate(`/register`)}>Register with Email</Button1>
+          </Box>
+          <Typography>
+            Already have an account? <MuiLink to="/login" component={Link} style={{ textDecoration: "none" }}>Login</MuiLink>
+          </Typography>
+        </Grid>
+      </Grid>
     </>
   )
 }

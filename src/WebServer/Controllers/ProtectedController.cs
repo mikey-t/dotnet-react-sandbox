@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WebServer.Auth;
+using WebServer.Model.Auth;
 
 namespace WebServer.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = Roles.USER)]
+[Authorize(Role.USER)]
 public class ProtectedController : ControllerBase
 {
     private readonly ILogger<ProtectedController> _logger;

@@ -8,7 +8,7 @@ using WebServer.Model.Response;
 
 namespace WebServer.Controllers.AdminControllers;
 
-[Authorize(Roles = nameof(Role.SUPER_ADMIN))]
+[Authorize(Role.SUPER_ADMIN)]
 [ApiController]
 [Route("api/admin/user")]
 public class UserController : ControllerBase

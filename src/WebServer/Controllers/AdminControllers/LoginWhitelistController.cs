@@ -7,7 +7,7 @@ using WebServer.Model.Request.AdminRequest;
 
 namespace WebServer.Controllers.AdminControllers;
 
-[Authorize(Roles = nameof(Role.SUPER_ADMIN))]
+[Authorize(Role.SUPER_ADMIN)]
 [ApiController]
 [Route("api/admin/login-whitelist")]
 public class LoginWhitelistController : ControllerBase

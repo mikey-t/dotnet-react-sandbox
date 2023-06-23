@@ -3,19 +3,20 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../components/auth/AuthProvider'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import AccountApi from '../../logic/AccountApi'
 import { Configuration, PublicClientApplication } from '@azure/msal-browser'
 import MuiLink from '@mui/material/Link'
 import LoadingBackdrop from '../../components/LoadingBackdrop'
-import Container from '@mui/material/Container'
 import Button1 from '../../components/Button1'
+// import settings
+import { SETTINGS } from '../../settings'
 
 const api = new AccountApi()
 const msalConfig: Configuration = {
   auth: {
-    clientId: '81ad0388-4a7d-456b-ba24-e0cb05ab840e'
+    clientId: SETTINGS.MICROSOFT_CLIENT_ID,
   }
 }
 const msalInstance = new PublicClientApplication(msalConfig)
@@ -82,7 +83,7 @@ export default function SignUp() {
       const google = (window as any).google
 
       google.accounts.id.initialize({
-        client_id: '401991059899-77oajm3ee1ukke4sktd0q1e05v44sub3.apps.googleusercontent.com',
+        client_id: SETTINGS.GOOGLE_CLIENT_ID,
         callback: handleGoogleCredentialResponse
       })
       google.accounts.id.renderButton(

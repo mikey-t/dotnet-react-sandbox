@@ -114,6 +114,10 @@ I have an automated script that does the following (you could create one for you
 
 Access swagger UI at http://localhost:5001/api or the json at http://localhost:5001/swagger/v1/swagger.json (replace 5001 with your port if you changed it).
 
+## Other Docs
+
+Social login documentation: [Social Logins documentation](./docs/SocialLogins.md)
+
 ## TODO
 
 - Add in vuetest for client unit testing

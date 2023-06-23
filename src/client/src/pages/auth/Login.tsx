@@ -2,20 +2,20 @@ import TextField from '@mui/material/TextField'
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import {Link, useLocation, useNavigate} from 'react-router-dom'
-import {useAuth} from '../../components/auth/AuthProvider'
-import React, {useEffect, useState} from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../components/auth/AuthProvider'
+import { useState } from 'react'
 import Alert from '@mui/material/Alert'
 import AccountApi from '../../logic/AccountApi'
-import {Configuration, PublicClientApplication} from '@azure/msal-browser'
+import { Configuration, PublicClientApplication } from '@azure/msal-browser'
 import MuiLink from '@mui/material/Link'
-import LoadingBackdrop from '../../components/LoadingBackdrop'
 import Button1 from '../../components/Button1'
+import { SETTINGS } from '../../settings'
 
 const api = new AccountApi()
 const msalConfig: Configuration = {
   auth: {
-    clientId: '81ad0388-4a7d-456b-ba24-e0cb05ab840e'
+    clientId: SETTINGS.MICROSOFT_CLIENT_ID
   }
 }
 const msalInstance = new PublicClientApplication(msalConfig)
@@ -23,7 +23,7 @@ const msalInstance = new PublicClientApplication(msalConfig)
 export default function Login() {
   const auth = useAuth()
   const navigate = useNavigate()
-  const {state} = useLocation() as any
+  const { state } = useLocation() as any
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [hasError, setHasError] = useState<boolean>(false)
@@ -38,7 +38,7 @@ export default function Login() {
     setLoading(true)
     event.preventDefault()
     try {
-      const userResponse = await api.login({email, password})
+      const userResponse = await api.login({ email, password })
       if (userResponse.isError()) {
         if (userResponse.statusCode === 401) {
           setHasError(true)
@@ -51,7 +51,7 @@ export default function Login() {
       const user = userResponse.data!
       console.log(user)
       auth.login(user, () => {
-        navigate(from, {replace: true})
+        navigate(from, { replace: true })
       })
     } catch (err) {
       console.error(err)
@@ -76,7 +76,7 @@ export default function Login() {
       }
       const user = res.data!
       auth.login(user, () => {
-        navigate(from, {replace: true})
+        navigate(from, { replace: true })
         return
       })
     }).catch(err => {
@@ -115,7 +115,7 @@ export default function Login() {
       }
       const user = authResponse.data!
       auth.login(user, () => {
-        navigate(from, {replace: true})
+        navigate(from, { replace: true })
         return
       })
     } catch (err) {
@@ -131,7 +131,7 @@ export default function Login() {
   //     const google = (window as any).google
   //
   //     google.accounts.id.initialize({
-  //       client_id: '401991059899-77oajm3ee1ukke4sktd0q1e05v44sub3.apps.googleusercontent.com',
+  //       client_id: SETTINGS.GOOGLE_CLIENT_ID,
   //       callback: handleGoogleCredentialResponse
   //     })
   //     google.accounts.id.renderButton(
@@ -159,14 +159,14 @@ export default function Login() {
       {/*<LoadingBackdrop loading={loading}/>*/}
 
 
-      <Grid container sx={{marginTop: 5, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'}}>
+      <Grid container sx={{ marginTop: 5, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
 
 
         <Box>
           <Alert severity="info">This site is in Alpha. You may not register or login unless you have received an invite.</Alert>
         </Box>
         <Box>
-          <Typography sx={{my: 3}} variant="h4" gutterBottom={true}>
+          <Typography sx={{ my: 3 }} variant="h4" gutterBottom={true}>
             Login
           </Typography>
         </Box>
@@ -195,7 +195,7 @@ export default function Login() {
         {/*  </Typography>*/}
         {/*</Grid>*/}
         <Grid item xs={12} sm={4}>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{maxWidth: '250px'}}>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '250px' }}>
             <TextField
               size="small"
               margin="dense"
@@ -232,17 +232,17 @@ export default function Login() {
               }}
               error={hasError}
             />
-            <Button1 type="submit" sx={{my: 2}}>
+            <Button1 type="submit" sx={{ my: 2 }}>
               Login
             </Button1>
-            {hasError && <Alert severity="error" sx={{mb: '2rem', mt: '2rem'}}>Email or password is incorrect</Alert>}
-            {whitelistError && <Alert severity="error" sx={{mb: '2rem'}}>Your account has not received an invite</Alert>}
+            {hasError && <Alert severity="error" sx={{ mb: '2rem', mt: '2rem' }}>Email or password is incorrect</Alert>}
+            {whitelistError && <Alert severity="error" sx={{ mb: '2rem' }}>Your account has not received an invite</Alert>}
 
           </Box>
 
         </Grid>
         <Typography>
-          Don't have an account? <MuiLink to="/sign-up" component={Link} style={{textDecoration: "none"}}> Sign up</MuiLink>
+          Don't have an account? <MuiLink to="/sign-up" component={Link} style={{ textDecoration: "none" }}> Sign up</MuiLink>
         </Typography>
 
       </Grid>

@@ -1,4 +1,4 @@
 export const SETTINGS = {
-    MICROSOFT_CLIENT_ID: "81ad0388-4a7d-456b-ba24-e0cb05ab840e",
-    GOOGLE_CLIENT_ID: "401991059899-77oajm3ee1ukke4sktd0q1e05v44sub3.apps.googleusercontent.com"
+    MICROSOFT_CLIENT_ID: "7fdb3b65-2c02-41f5-9e0b-0140eaa31651",
+    GOOGLE_CLIENT_ID: "101730043460-2etv7jn5225b36ni0b5k9hnb1e606l7v.apps.googleusercontent.com"
 }

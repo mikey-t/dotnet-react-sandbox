@@ -1,110 +1,25 @@
-import Grid from '@mui/material/Grid'
-import Box from '@mui/material/Box'
-import Typography from '@mui/material/Typography'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../components/auth/AuthProvider'
-import { useEffect, useState } from 'react'
 import Alert from '@mui/material/Alert'
-import AccountApi from '../../logic/AccountApi'
-import { Configuration, PublicClientApplication } from '@azure/msal-browser'
+import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
 import MuiLink from '@mui/material/Link'
-import LoadingBackdrop from '../../components/LoadingBackdrop'
+import Typography from '@mui/material/Typography'
+import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Button1 from '../../components/Button1'
-// import settings
-import { SETTINGS } from '../../settings'
-
-const api = new AccountApi()
-const msalConfig: Configuration = {
-  auth: {
-    clientId: SETTINGS.MICROSOFT_CLIENT_ID,
-  }
-}
-const msalInstance = new PublicClientApplication(msalConfig)
+import LoadingBackdrop from '../../components/LoadingBackdrop'
+import { useAuth } from '../../components/auth/AuthProvider'
+import GoogleLoginButton from '../../components/auth/social/GoogleLoginButton'
+import MicrosoftLoginButton from '../../components/auth/social/MicrosoftLoginButton'
 
 export default function SignUp() {
   const auth = useAuth()
   const navigate = useNavigate()
   const { state } = useLocation() as any
   const [socialLoginError, setSocialLoginError] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(false)
+  const [whitelistError, setWhitelistError] = useState<boolean>(false)
 
-  const from = state?.from?.pathname || '/'
-
-  const handleGoogleCredentialResponse = (credentialResponse: any) => {
-    api.loginGoogle(credentialResponse.credential).then(res => {
-      if (res.isError()) {
-        console.error('error logging in with google', res.exception?.toJson())
-        navigate('/error')
-        return
-      }
-      const user = res.data!
-      auth.login(user, () => {
-        navigate(from, { replace: true })
-      })
-    }).catch(err => {
-      console.log('google login error', err)
-      setSocialLoginError('An unexpected error occurred attempting to login with google')
-    })
-  }
-
-  const msLogin = async () => {
-    console.log('attempting to open MS login popup')
-    const loginRequest = {
-      scopes: ['email', 'profile'],
-      prompt: 'select_account',
-      responseMode: 'fragment', // This is the only supported mode: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser
-      redirectUri: '/api/account/microsoft-login-redirect' // Required here in addition to being setup in azure portal
-    }
-    try {
-      const result = await msalInstance.loginPopup(loginRequest)
-      if (!result || !result.idToken) {
-        setSocialLoginError('An unexpected error occurred attempting to login with google')
-        return
-      }
-      const authResponse = await api.loginMicrosoft(result.idToken)
-      if (authResponse.isError()) {
-        console.error('error processing microsoft login', authResponse.exception?.toJson())
-        navigate('/error')
-        return
-      }
-      const user = authResponse.data!
-      auth.login(user, () => {
-        navigate(from, { replace: true })
-      })
-    } catch (err) {
-      console.log('error opening MS login popup', err)
-    }
-  }
-
-  useEffect(() => {
-    let isCanceled = false
-
-    try {
-      const google = (window as any).google
-
-      google.accounts.id.initialize({
-        client_id: SETTINGS.GOOGLE_CLIENT_ID,
-        callback: handleGoogleCredentialResponse
-      })
-      google.accounts.id.renderButton(
-        document.getElementById("login-with-google"),
-        {
-          theme: "filled_blue",
-          text: "Sign in with Google",
-          width: '245px',
-          logo_alignment: 'left'
-        }
-      )
-    } catch (err) {
-      console.error('error initializing google login button')
-    } finally {
-      if (!isCanceled) setLoading(false)
-    }
-
-    return () => {
-      isCanceled = true
-    }
-  }, [])
+  const fromUrl = state?.from?.pathname || '/'
 
   return (
     <>
@@ -127,23 +42,39 @@ export default function SignUp() {
         </Typography>
 
         <Grid item xs={12}>
-          <Box sx={{ width: '250px' }}>
-            <Box id="login-with-google"></Box>
-            {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
-          </Box>
+          <GoogleLoginButton
+            onSuccess={(user) => {
+              auth.login(user, () => {
+                navigate(fromUrl, { replace: true })
+              })
+            }}
+            onLoginFailure={(error) => {
+              console.error('error processing google login response', error)
+              setSocialLoginError('An unexpected error occurred attempting to login with google')
+            }}
+            onInitFailure={(error) => {
+              console.error('error initializing google login button', error)
+            }}
+          />
+          {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
         </Grid>
         <Grid item xs={12}>
-          <Box
-            component="img"
-            sx={{
-              width: '244px',
-              pt: 1,
-              cursor: 'pointer'
+          <MicrosoftLoginButton
+            onWhitelistFailure={() => {
+              setWhitelistError(true)
             }}
-            src='/images/ms-login.svg'
-            alt='ms-login'
-            onClick={msLogin}
+            onFailure={(err) => {
+              setSocialLoginError('An unexpected error occurred attempting to login with microsoft')
+            }}
+            onSuccess={(user) => {
+              auth.login(user, () => {
+                navigate(fromUrl, { replace: true })
+              })
+            }}
           />
+        </Grid>
+        <Grid item xs={12}>
+          {whitelistError && <Alert severity="error" sx={{ mb: '2rem' }}>Your account has not received an invite</Alert>}
         </Grid>
         <Grid item xs={12}>
           <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR

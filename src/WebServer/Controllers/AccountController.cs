@@ -81,7 +81,7 @@ public class AccountController : ControllerBase
     [HttpPost("login-microsoft")]
     [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
     [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
-    public async Task<IActionResult> MicrosoftLogin([FromBody] MicrosoftLoginRequest request)
+    public async Task<IActionResult> LoginMicrosoft([FromBody] MicrosoftLoginRequest request)
     {
         LoginResult loginResult;
         try

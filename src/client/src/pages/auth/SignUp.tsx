@@ -10,6 +10,7 @@ import LoadingBackdrop from '../../components/LoadingBackdrop'
 import { useAuth } from '../../components/auth/AuthProvider'
 import GoogleLoginButton from '../../components/auth/social/GoogleLoginButton'
 import MicrosoftLoginButton from '../../components/auth/social/MicrosoftLoginButton'
+import { SETTINGS } from '../../settings'
 
 export default function SignUp() {
   const auth = useAuth()
@@ -41,7 +42,7 @@ export default function SignUp() {
           <MuiLink to="/content" component={Link} style={{ textDecoration: "none" }}> Content Policy. </MuiLink>
         </Typography>
 
-        <Grid item xs={12}>
+        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <GoogleLoginButton
             onSuccess={(user) => {
               auth.login(user, () => {
@@ -57,8 +58,8 @@ export default function SignUp() {
             }}
           />
           {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
-        </Grid>
-        <Grid item xs={12}>
+        </Grid>}
+        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <MicrosoftLoginButton
             onWhitelistFailure={() => {
               setWhitelistError(true)
@@ -72,14 +73,14 @@ export default function SignUp() {
               })
             }}
           />
-        </Grid>
+        </Grid>}
         <Grid item xs={12}>
           {whitelistError && <Alert severity="error" sx={{ mb: '2rem' }}>Your account has not received an invite</Alert>}
         </Grid>
-        <Grid item xs={12}>
+        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR
           </Typography>
-        </Grid>
+        </Grid>}
         <Grid item xs={12}>
           <Box sx={{ maxWidth: '245px', mb: 2 }}>
             <Button1 onClick={_ => navigate(`/register`)}>Register with Email</Button1>

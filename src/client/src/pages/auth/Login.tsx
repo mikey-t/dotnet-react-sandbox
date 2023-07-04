@@ -12,6 +12,7 @@ import Button1 from '../../components/Button1'
 import GoogleLoginButton from '../../components/auth/social/GoogleLoginButton'
 import MicrosoftLoginButton from '../../components/auth/social/MicrosoftLoginButton'
 import LoadingBackdrop from '../../components/LoadingBackdrop'
+import { SETTINGS } from '../../settings'
 
 const api = new AccountApi()
 
@@ -68,7 +69,7 @@ export default function Login() {
             Login
           </Typography>
         </Box>
-        <Grid item xs={12}>
+        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <Box>
             <GoogleLoginButton
               onSuccess={(user) => {
@@ -86,8 +87,8 @@ export default function Login() {
             />
             {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
           </Box>
-        </Grid>
-        <Grid item xs={12}>
+        </Grid>}
+        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <MicrosoftLoginButton
             onWhitelistFailure={() => {
               setWhitelistError(true)
@@ -101,11 +102,11 @@ export default function Login() {
               })
             }}
           />
-        </Grid>
-        <Grid item xs={12}>
+        </Grid>}
+        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR
           </Typography>
-        </Grid>
+        </Grid>}
         <Grid item xs={12} sm={4}>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '250px' }}>
             <TextField

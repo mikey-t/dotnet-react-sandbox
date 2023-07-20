@@ -19,7 +19,7 @@ Then navigate to https://local.drs.mikeyt.net:3000.
 ## Initial Development Setup
 
 Pre-requisites:
-- Node.js version 16.x (greater than 16 will not work due to certificate issues)
+- Node.js version 18.x
 - .NET 6 SDK
 - Docker
 - Openssl
@@ -122,7 +122,6 @@ Social login documentation: [Social Logins documentation](./docs/SocialLogins.md
 
 - Add in vuetest for client unit testing
 - More client code cleanup
-- Functionality to enable/disable social logins so fresh projects don't have console errors and broken social login buttons before setting up Google/Microsoft application credentials
 - Functionality to enable/disable email verification functionality so you can register new accounts without setting up email sending
 - Docker config/plumbing to generate a deployable image
 - Move out boilerplate gulpfile commands to something like CRA's react-scripts, or Vue's CLI

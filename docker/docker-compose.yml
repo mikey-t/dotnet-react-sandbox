@@ -3,7 +3,7 @@ version: '3.7'
 services:
   postgresql:
     image: postgres:13.8
-    container_name: '${PROJECT_NAME}'
+    container_name: '${PROJECT_NAME}_postgres'
     volumes:
       - ./pg/data:/var/lib/postgresql/data
     environment:

@@ -43,11 +43,11 @@
     "linuxInstallCert": "gulp linuxInstallCert"
   },
   "devDependencies": {
-    "@mikeyt23/node-cli-utils": "^1.4.0",
-    "dotenv": "^16.0.3",
+    "@mikeyt23/node-cli-utils": "^1.4.1",
+    "dotenv": "^16.3.1",
     "fs-extra": "^11.1.1",
     "gulp": "^4.0.2",
-    "which": "^3.0.1",
+    "which": "^4.0.0",
     "yargs": "^17.7.2"
   },
   "volta": {

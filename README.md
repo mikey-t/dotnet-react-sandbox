@@ -118,6 +118,25 @@ Access swagger UI at http://localhost:5001/api or the json at http://localhost:5
 
 Social login documentation: [Social Logins documentation](./docs/SocialLogins.md)
 
+## Local Postgres Upgrade Process
+
+- navigate to project in shell
+- `npm run dockerUp`
+- `docker exec -it drs_postgres pg_dump -U postgres -Fc -b -f /tmp/drs.dump drs`
+- `docker cp drs_postgres:/tmp/drs.dump ./drs.dump`
+- `npm run dockerDown`
+- copy (not move) ./docker to ./docker_backup
+- update docker-compose to use new image version (for example, postgres:15.3)
+- delete ./docker/pg
+- `npm run dockerUp`
+- pause for a moment to let postgres initialize for the first time (~15 seconds)
+- `npm run dbInitialCreate`
+- `docker cp ./drs.dump drs_postgres:/tmp/drs.dump`
+- `docker exec -it drs_postgres pg_restore -U postgres -d drs /tmp/drs.dump`
+- test (spin up site and/or login via pgAdmin)
+- delete ./docker_backup
+- delete ./drs.dump
+
 ## TODO
 
 - Add in vuetest for client unit testing

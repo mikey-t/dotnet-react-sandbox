@@ -1,9 +1,9 @@
 import * as React from 'react'
-import {styled} from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import MuiDrawer from '@mui/material/Drawer'
 import Box from '@mui/material/Box'
-import MuiAppBar, {AppBarProps as MuiAppBarProps} from '@mui/material/AppBar'
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import List from '@mui/material/List'
 import Typography from '@mui/material/Typography'
@@ -14,12 +14,11 @@ import Paper from '@mui/material/Paper'
 import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
-import {useNavigate, Outlet} from 'react-router-dom'
-import {ListItem, ListItemIcon, ListItemText} from '@mui/material'
+import { useNavigate, Outlet } from 'react-router-dom'
+import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import PersonIcon from '@mui/icons-material/Person'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
-import Copyright from '../components/Copyright'
 
 const drawerWidth: number = 240
 
@@ -32,8 +31,8 @@ export default function AdminLayout() {
   }
 
   return (
-    <Box sx={{display: 'flex'}}>
-      <CssBaseline/>
+    <Box sx={{ display: 'flex' }}>
+      <CssBaseline />
       <AppBar position="absolute" open={open}>
         <Toolbar
           sx={{
@@ -47,21 +46,21 @@ export default function AdminLayout() {
             onClick={toggleDrawer}
             sx={{
               marginRight: '36px',
-              ...(open && {display: 'none'}),
+              ...(open && { display: 'none' }),
             }}
           >
-            <MenuIcon/>
+            <MenuIcon />
           </IconButton>
           <Typography
             component="h1"
             variant="h6"
             color="inherit"
             noWrap
-            sx={{flexGrow: 1}}
+            sx={{ flexGrow: 1 }}
           >
             Admin Dashboard
           </Typography>
-          <IconButton onClick={_ => navigate('/')}><ExitToAppIcon/></IconButton>
+          <IconButton onClick={_ => navigate('/')}><ExitToAppIcon /></IconButton>
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
@@ -75,30 +74,30 @@ export default function AdminLayout() {
           }}
         >
           <IconButton onClick={toggleDrawer}>
-            <ChevronLeftIcon/>
+            <ChevronLeftIcon />
           </IconButton>
         </Toolbar>
-        <Divider/>
+        <Divider />
         <List component="nav">
           <ListItem button onClick={_ => navigate('/admin')}>
             <ListItemIcon>
-              <DashboardIcon/>
+              <DashboardIcon />
             </ListItemIcon>
-            <ListItemText primary="Home"/>
+            <ListItemText primary="Home" />
           </ListItem>
           <ListItem button onClick={_ => navigate('/admin/users')}>
             <ListItemIcon>
-              <PersonIcon/>
+              <PersonIcon />
             </ListItemIcon>
-            <ListItemText primary="Users"/>
+            <ListItemText primary="Users" />
           </ListItem>
           <ListItem button onClick={_ => navigate('/admin/whitelist')}>
             <ListItemIcon>
-              <LockOpenIcon/>
+              <LockOpenIcon />
             </ListItemIcon>
-            <ListItemText primary="Whitelist"/>
+            <ListItemText primary="Whitelist" />
           </ListItem>
-          <Divider sx={{my: 1}}/>
+          <Divider sx={{ my: 1 }} />
         </List>
       </Drawer>
       <Box
@@ -113,7 +112,7 @@ export default function AdminLayout() {
           overflow: 'auto',
         }}
       >
-        <Toolbar/>
+        <Toolbar />
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Paper
@@ -123,7 +122,7 @@ export default function AdminLayout() {
                 flexDirection: 'column',
               }}
             >
-              <Outlet/>
+              <Outlet />
             </Paper>
           </Grid>
         </Grid>
@@ -139,7 +138,7 @@ interface AppBarProps extends MuiAppBarProps {
 
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({theme, open}) => ({
+})<AppBarProps>(({ theme, open }) => ({
   zIndex: theme.zIndex.drawer + 1,
   transition: theme.transitions.create(['width', 'margin'], {
     easing: theme.transitions.easing.sharp,
@@ -155,8 +154,8 @@ const AppBar = styled(MuiAppBar, {
   }),
 }))
 
-const Drawer = styled(MuiDrawer, {shouldForwardProp: (prop) => prop !== 'open'})(
-  ({theme, open}) => ({
+const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+  ({ theme, open }) => ({
     '& .MuiDrawer-paper': {
       position: 'relative',
       whiteSpace: 'nowrap',

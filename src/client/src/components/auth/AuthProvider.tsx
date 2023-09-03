@@ -1,6 +1,6 @@
-import React, {useEffect, useMemo, useState} from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import AccountApi from '../../logic/AccountApi'
-import {User} from '../../model/models'
+import { User } from '../../model/models'
 
 const api = new AccountApi()
 
@@ -10,9 +10,9 @@ export interface IAuthContext {
   logout: (callback: VoidFunction) => void
 }
 
-let AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
+const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
 
-export function AuthProvider({children}: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>()
   const [loadingInitial, setLoadingInitial] = useState<boolean>(true)
 

@@ -16,7 +16,7 @@ const msalConfig: Configuration = {
 const msalInstance = new PublicClientApplication(msalConfig)
 
 interface MicrosoftLoginButtonProps {
-  onFailure: (response: any) => void
+  onFailure: (errorMessage: string) => void
   onWhitelistFailure: () => void
   onSuccess: (user: User) => void
 }

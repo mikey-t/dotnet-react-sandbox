@@ -2,9 +2,9 @@ import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
 import Menu from '@mui/material/Menu'
 import Tooltip from '@mui/material/Tooltip'
-import React, {useState} from 'react'
-import {Link, useNavigate} from 'react-router-dom'
-import {useAuth} from './AuthProvider'
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from './AuthProvider'
 import IconButton from "@mui/material/IconButton"
 import LoginIcon from '@mui/icons-material/Login'
 import MenuItem from '@mui/material/MenuItem'
@@ -31,11 +31,10 @@ export default function AuthNav() {
   }
 
   if (!auth.user) {
-    return <Link to="/login" style={{textDecoration: "none", color: "inherit"}}>
-      <Button startIcon={<LoginIcon sx={{mb: 0.3}}/>}
-              sx={{px: 3, color: "white", display: "flex", fontSize: '16px', fontWeight: '700'}}
-              size='large'>
-       
+    return <Link to="/login" style={{ textDecoration: "none", color: "inherit" }}>
+      <Button startIcon={<LoginIcon sx={{ mb: 0.3 }} />}
+        sx={{ px: 3, color: "white", display: "flex", fontSize: '16px', fontWeight: '700' }}
+        size='large'>
       </Button>
     </Link>
   }
@@ -49,7 +48,7 @@ export default function AuthNav() {
         </IconButton>
       </Tooltip>
       <Menu
-        sx={{mt: "45px"}}
+        sx={{ mt: "45px" }}
         id="menu-appbar"
         anchorEl={anchorElUser}
         anchorOrigin={{

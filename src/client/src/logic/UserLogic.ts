@@ -1,4 +1,4 @@
-import {User} from '../model/models'
+import { User } from '../model/models'
 
 export default class UserLogic {
   static IsContentCreator(user: User | null) {

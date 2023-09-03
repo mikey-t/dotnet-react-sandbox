@@ -15,8 +15,9 @@ import { SETTINGS } from '../../settings'
 export default function SignUp() {
   const auth = useAuth()
   const navigate = useNavigate()
-  const { state } = useLocation() as any
+  const { state } = useLocation()
   const [socialLoginError, setSocialLoginError] = useState<string>('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loading, setLoading] = useState<boolean>(false)
   const [whitelistError, setWhitelistError] = useState<boolean>(false)
 
@@ -64,7 +65,7 @@ export default function SignUp() {
             onWhitelistFailure={() => {
               setWhitelistError(true)
             }}
-            onFailure={(err) => {
+            onFailure={() => {
               setSocialLoginError('An unexpected error occurred attempting to login with microsoft')
             }}
             onSuccess={(user) => {
@@ -83,7 +84,7 @@ export default function SignUp() {
         </Grid>}
         <Grid item xs={12}>
           <Box sx={{ maxWidth: '245px', mb: 2 }}>
-            <Button1 onClick={_ => navigate(`/register`)}>Register with Email</Button1>
+            <Button1 onClick={() => navigate(`/register`)}>Register with Email</Button1>
           </Box>
           <Typography>
             Already have an account? <MuiLink to="/login" component={Link} style={{ textDecoration: "none" }}>Login</MuiLink>

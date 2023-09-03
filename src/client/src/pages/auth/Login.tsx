@@ -19,7 +19,7 @@ const api = new AccountApi()
 export default function Login() {
   const auth = useAuth()
   const navigate = useNavigate()
-  const { state } = useLocation() as any
+  const { state } = useLocation()
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [hasError, setHasError] = useState<boolean>(false)
@@ -29,7 +29,7 @@ export default function Login() {
 
   const fromUrl = state?.from?.pathname || '/'
 
-  const handleSubmit = async (event: any) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     if (loading) return
     setLoading(true)
     event.preventDefault()
@@ -59,7 +59,7 @@ export default function Login() {
 
   return (
     <>
-      <LoadingBackdrop loading={loading}/>
+      <LoadingBackdrop loading={loading} />
       <Grid container sx={{ marginTop: 5, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <Box>
           <Alert severity="info">This site is in Alpha. You may not register or login unless you have received an invite.</Alert>
@@ -93,7 +93,7 @@ export default function Login() {
             onWhitelistFailure={() => {
               setWhitelistError(true)
             }}
-            onFailure={(err) => {
+            onFailure={() => {
               setSocialLoginError('An unexpected error occurred attempting to login with microsoft')
             }}
             onSuccess={(user) => {
@@ -153,7 +153,7 @@ export default function Login() {
           </Box>
         </Grid>
         <Typography>
-          Don't have an account? <MuiLink to="/sign-up" component={Link} style={{ textDecoration: "none" }}> Sign up</MuiLink>
+          Don&apos;t have an account? <MuiLink to="/sign-up" component={Link} style={{ textDecoration: "none" }}> Sign up</MuiLink>
         </Typography>
       </Grid>
     </>

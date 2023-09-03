@@ -25,12 +25,18 @@
     "your-project-name": "file:../.."
   },
   "devDependencies": {
+    "@types/google-one-tap": "^1.2.2",
+    "@types/google.accounts": "^0.0.9",
     "@types/gtag.js": "^0.0.13",
     "@types/node": "^20.5.7",
     "@types/react": "^18.2.21",
     "@types/react-dom": "^18.2.7",
     "@types/uuid": "^9.0.2",
+    "@typescript-eslint/eslint-plugin": "^6.5.0",
+    "@typescript-eslint/parser": "^6.5.0",
     "@vitejs/plugin-react": "^4.0.4",
+    "eslint": "^8.48.0",
+    "eslint-plugin-react": "^7.33.2",
     "typescript": "^5.2.2",
     "vite": "^4.4.9"
   },

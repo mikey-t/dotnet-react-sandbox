@@ -1,6 +1,6 @@
 import * as React from 'react'
 import Button from '@mui/material/Button'
-import {MouseEventHandler, ReactNode} from 'react'
+import { MouseEventHandler, ReactNode } from 'react'
 
 
 interface Button1Props {

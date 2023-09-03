@@ -12,8 +12,8 @@ import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import CameraIcon from '@mui/icons-material/Camera'
-import {useNavigate} from 'react-router-dom'
-import {useAuth} from './auth/AuthProvider'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from './auth/AuthProvider'
 
 const pages = [
   {
@@ -31,9 +31,9 @@ const pages = [
 ]
 
 const settings = [
-  {title: 'Account', location: '/account'},
-  {title: 'Admin', location: '/admin'},
-  {title: 'Logout', location: '/logout'}
+  { title: 'Account', location: '/account' },
+  { title: 'Admin', location: '/admin' },
+  { title: 'Logout', location: '/logout' }
 ]
 
 export default function NavBar() {
@@ -58,12 +58,12 @@ export default function NavBar() {
     setAnchorElUser(null)
   }
 
-  const navigateClick = (e: any, location: string) => {
+  const navigateClick = (e: React.MouseEvent<HTMLElement>, location: string) => {
     setAnchorElNav(null)
     setAnchorElUser(null)
     navigate(location)
   }
-  
+
   const userIsAdmin = () => {
     return auth.user && auth.user.roles && auth.user.roles.includes('SUPER_ADMIN')
   }
@@ -73,14 +73,14 @@ export default function NavBar() {
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <IconButton onClick={e => navigateClick(e, '/')}>
-            <CameraIcon sx={{display: {xs: 'none', md: 'flex'}, mr: 1}}/>
+            <CameraIcon sx={{ display: { xs: 'none', md: 'flex' }, mr: 1 }} />
             <Typography
               variant="h6"
               noWrap
               component="a"
               sx={{
                 mr: 2,
-                display: {xs: 'none', md: 'flex'},
+                display: { xs: 'none', md: 'flex' },
                 fontWeight: 700,
                 color: 'inherit',
                 textDecoration: 'none',
@@ -90,7 +90,7 @@ export default function NavBar() {
             </Typography>
           </IconButton>
 
-          <Box sx={{flexGrow: 1, display: {xs: 'flex', md: 'none'}}}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'flex', md: 'none' } }}>
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -99,7 +99,7 @@ export default function NavBar() {
               onClick={handleOpenNavMenu}
               color="inherit"
             >
-              <MenuIcon/>
+              <MenuIcon />
             </IconButton>
             <Menu
               id="menu-appbar"
@@ -116,7 +116,7 @@ export default function NavBar() {
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
               sx={{
-                display: {xs: 'block', md: 'none'},
+                display: { xs: 'block', md: 'none' },
               }}
             >
               {pages.map((page, idx) => (
@@ -126,7 +126,7 @@ export default function NavBar() {
               ))}
             </Menu>
           </Box>
-          <CameraIcon sx={{display: {xs: 'flex', md: 'none'}, mr: 1}}/>
+          <CameraIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
           <Typography
             variant="h5"
             noWrap
@@ -134,7 +134,7 @@ export default function NavBar() {
             href=""
             sx={{
               mr: 2,
-              display: {xs: 'flex', md: 'none'},
+              display: { xs: 'flex', md: 'none' },
               flexGrow: 1,
               fontWeight: 700,
               color: 'inherit',
@@ -143,25 +143,25 @@ export default function NavBar() {
           >
             LOGO
           </Typography>
-          <Box sx={{flexGrow: 1, display: {xs: 'none', md: 'flex'}}}>
+          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
             {pages.map((page, idx) => (
               <Button
                 key={idx}
                 onClick={e => navigateClick(e, page.location)}
-                sx={{my: 2, color: 'white', display: 'block'}}
+                sx={{ my: 2, color: 'white', display: 'block' }}
               >
                 {page.title}
               </Button>
             ))}
           </Box>
-          {!!auth.user && <Box sx={{flexGrow: 0}}>
+          {!!auth.user && <Box sx={{ flexGrow: 0 }}>
             <Tooltip title="Open settings">
-              <IconButton onClick={handleOpenUserMenu} sx={{p: 0}}>
-                <Avatar alt="John Doe"/>
+              <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <Avatar alt="John Doe" />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{mt: '45px'}}
+              sx={{ mt: '45px' }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{

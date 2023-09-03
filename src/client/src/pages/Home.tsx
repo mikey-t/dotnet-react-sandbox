@@ -1,23 +1,30 @@
-﻿import {useState} from 'react'
+﻿import { useState } from 'react'
 import Button from '@mui/material/Button'
 
 export default function Home() {
   return (
     <div>
       <h1>Home</h1>
-      
-      <ApiTestWidget/>
+
+      <ApiTestWidget />
     </div>
   )
 }
 
+interface WeatherForecast {
+  date: string
+  temperatureC: number
+  temperatureF: number
+  summary?: string
+}
+
 function ApiTestWidget() {
-  const [forecasts, setForecasts] = useState<any[]>([])
+  const [forecasts, setForecasts] = useState<WeatherForecast[]>([])
 
   const getForecasts = async () => {
     setForecasts([])
-    let res = await fetch('/api/WeatherForecast')
-    let data = await res.json()
+    const res = await fetch('/api/WeatherForecast')
+    const data = await res.json()
     if (Array.isArray(data)) {
       setForecasts(data)
     } else {

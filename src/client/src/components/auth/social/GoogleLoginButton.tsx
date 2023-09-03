@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react'
 import { SETTINGS } from '../../../settings'
+import { CredentialResponse } from 'google-one-tap'
 
 interface GoogleLoginButtonProps {
-  onInitFailure: (response: any) => void
-  onLoginFailure: (response: any) => void
+  onInitFailure: (response: unknown) => void
+  onLoginFailure: (response: unknown) => void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSuccess: (response: any) => void
 }
 
-const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onInitFailure, onLoginFailure, onSuccess }) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onInitFailure, onLoginFailure, onSuccess }: GoogleLoginButtonProps) => {
   const [loading, setLoading] = useState<boolean>(true)
 
-  const handleGoogleCredentialResponse = (response: any) => {
-    if (response.error) {
-      onLoginFailure(response.error)
-      return
-    }
+  const handleGoogleCredentialResponse = (response: CredentialResponse) => {
+    // Unclear if this used to be a thing, but the typescript type has no error property and the initialize method has no error callback...
+    // if (response.error) {
+    //   onLoginFailure(response.error)
+    //   return
+    // }
     onSuccess(response)
   }
 
@@ -22,18 +26,22 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onInitFailure, on
     let isCanceled = false
 
     try {
-      const google = (window as any).google
-
       google.accounts.id.initialize({
         client_id: SETTINGS.GOOGLE_CLIENT_ID,
         callback: handleGoogleCredentialResponse
       })
+
+      const loginButton = document.getElementById('login-with-google')
+      if (!loginButton) {
+        throw new Error('login-with-google element not found')
+      }
+
       google.accounts.id.renderButton(
-        document.getElementById("login-with-google"),
+        loginButton,
         {
-          theme: "filled_blue",
-          text: "Sign in with Google",
-          width: '245px',
+          theme: 'filled_blue',
+          text: 'signin',
+          width: 245,
           logo_alignment: 'left'
         }
       )

@@ -1,7 +1,6 @@
-import * as React from 'react'
 import Button from '@mui/material/Button'
-import {MouseEventHandler, ReactNode} from 'react'
-import {SxProps, Theme} from '@mui/material'
+import { MouseEventHandler, ReactNode } from 'react'
+import { SxProps, Theme } from '@mui/material'
 
 interface Button1Props {
   onClick?: MouseEventHandler | undefined
@@ -22,7 +21,7 @@ export default function Button1(props: Button1Props) {
         textTransform: 'none',
         width: 1
       },
-        ...(!!props.sx ? Array.isArray(props.sx) ? props.sx : [props.sx] : [])
+      ...(props.sx ? Array.isArray(props.sx) ? props.sx : [props.sx] : [])
       ]}
       onClick={props.onClick}
       startIcon={props.startIcon}

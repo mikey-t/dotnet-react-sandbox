@@ -4,7 +4,8 @@ export default function ContentPolicy() {
       <h2>Content Policy</h2>
       <p> Last Updated: 5/14/22</p>
 
-      Be kind, no porn, don't waste space in our database. 
+      Be kind, no porn, don&apos;t waste space in our database.
     </>
-  
-  )}
+
+  )
+}

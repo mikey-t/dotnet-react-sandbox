@@ -77,3 +77,12 @@ export interface SessionCard {
   startedAt: Date
   finishedAt: Date
 }
+
+export interface IValidationProblemDetails {
+  type?: string
+  title?: string
+  status?: number
+  detail?: string
+  instance?: string
+  errors?: { [key: string]: string[] }
+}

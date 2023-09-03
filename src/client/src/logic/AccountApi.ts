@@ -1,5 +1,5 @@
 import ApiBase from './ApiBase'
-import {LoginRequest, User} from '../model/models'
+import { LoginRequest, User } from '../model/models'
 import ApiResponse from '../model/ApiResponse'
 
 export default class AccountApi extends ApiBase {
@@ -18,16 +18,16 @@ export default class AccountApi extends ApiBase {
     }
   }
 
-  async loginGoogle(credential: any): Promise<ApiResponse<User | null>> {
-    return await this.post<User>('account/login-google', {credential})
+  async loginGoogle(credential: string): Promise<ApiResponse<User | null>> {
+    return await this.post<User>('account/login-google', { credential })
   }
 
   async loginMicrosoft(code: string): Promise<ApiResponse<User | null>> {
-    return await this.post<User>('account/login-microsoft', {code})
+    return await this.post<User>('account/login-microsoft', { code })
   }
 
-  async register(firstName: string, lastName: string, email: string, password: string): Promise<ApiResponse<any>> {
-    return await this.post<any>('account/register', {
+  async register(firstName: string, lastName: string, email: string, password: string): Promise<ApiResponse<unknown>> {
+    return await this.post<string>('account/register', {
       firstName: firstName,
       lastName: lastName,
       email: email,
@@ -36,10 +36,10 @@ export default class AccountApi extends ApiBase {
   }
 
   async verifyEmail(code: string) {
-    return await this.post<any>('account/verify-email', {code})
+    return await this.post<unknown>('account/verify-email', { code })
   }
 
   async resendVerificationEmail(email: string) {
-    return await this.post<any>('account/resend-verification-email', {email})
+    return await this.post<unknown>('account/resend-verification-email', { email })
   }
 }

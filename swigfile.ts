@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { copyNewEnvValues, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
 import { series, parallel } from 'swig-cli'
@@ -100,11 +102,11 @@ async function writeServerTestEnv() {
   const testEnvPath = 'src/WebServer.Test/.env'
   const originalEnvString = fs.readFileSync(envPath, 'utf-8')
 
-  let keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
+  const keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
 
   let newTestEnvString = ''
 
-  for (let line of originalEnvString.split('\n')) {
+  for (const line of originalEnvString.split('\n')) {
     if (!line || line.indexOf('=') === -1) {
       continue
     }

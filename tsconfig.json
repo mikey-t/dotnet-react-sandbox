@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "swigfile.ts"
+  ],
+  "exclude": [
+    ".vscode",
+    "build",
+    "cert",
+    "docker",
+    "docs",
+    "node_modules",
+    "release",
+    "src"
+  ]
+}

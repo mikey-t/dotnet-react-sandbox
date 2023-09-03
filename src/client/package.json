@@ -21,7 +21,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.15.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "your-project-name": "file:../.."
   },
   "devDependencies": {
     "@types/gtag.js": "^0.0.13",
@@ -34,6 +35,6 @@
     "vite": "^4.4.9"
   },
   "volta": {
-    "node": "16.20.0"
+    "node": "18.17.1"
   }
 }

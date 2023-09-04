@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../docs"
+		}
+	],
+	"settings": {
+		"dotnet.defaultSolution": "dotnet-react-sandbox.sln"
+	}
+}

@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "npmInstall": "npm install && npm install --prefix ./src/client",
+    "npmInstall": "npm install && cd ./client && npm install",
     "syncEnvFiles": "gulp syncEnvFiles",
-    "client": "gulp syncEnvFiles && npm run dev --prefix ./src/client",
-    "server": "gulp syncEnvFiles && dotnet watch --project ./src/WebServer/WebServer.csproj",
+    "client": "gulp syncEnvFiles && npm run dev --prefix ./client",
+    "server": "gulp syncEnvFiles && dotnet watch --project ./server/src/WebServer/WebServer.csproj",
     "test:server": "gulp syncEnvFiles && dotnet test",
     "build:client": "gulp buildClient",
     "build:server": "gulp buildServer",

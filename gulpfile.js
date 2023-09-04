@@ -34,8 +34,8 @@ const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder befo
 
 const buildDir = './build'
 const buildWwwrootDir = './build/wwwroot'
-const clientAppPath = './src/client'
-const serverAppPath = './src/WebServer'
+const clientAppPath = './client'
+const serverAppPath = './server/src/WebServer'
 const tarballName = `${projectName}.tar.gz`
 const dockerPath = './docker'
 const dockerProjectName = projectName
@@ -43,7 +43,7 @@ const dockerDbContainerName = `${projectName}_postgres`
 const preDeployHttpPort = '3001'
 const preDeployHttpsPort = '3000'
 
-const dbMigratorPath = 'src/DbMigrator/'
+const dbMigratorPath = 'server/src/DbMigrator/'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
 
@@ -202,7 +202,7 @@ async function linuxInstallCertWrapper() {
 
 async function writeServerTestEnv() {
   const envPath = '.env'
-  const testEnvPath = 'src/WebServer.Test/.env'
+  const testEnvPath = 'server/src/WebServer.Test/.env'
   const originalEnvString = fs.readFileSync(envPath, 'utf-8')
 
   let keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']

@@ -6,61 +6,42 @@ export function log(message?: unknown, ...optionalParams: unknown[]) {
 
 export interface SpawnResult {
   code: number
-  stdout: string
-  stderr: string
+  error?: Error,
   cwd?: string
 }
 
-export async function spawnAsync(command: string, args: string[], options: SpawnOptions, liveOutput = false): Promise<SpawnResult> {
-  return new Promise((resolve, reject) => {
-    const result: SpawnResult = {
-      stdout: '',
-      stderr: '',
-      code: 99,
-      cwd: options.cwd?.toString()
+export function spawnAsync(command: string, args: string[], options?: SpawnOptions): Promise<SpawnResult> {
+  return new Promise((resolve) => {
+    const defaultSpawnOptions: SpawnOptions = {
+      stdio: 'inherit'
     }
 
-    const proc = spawn(command, args, options)
+    const mergedOptions = { ...defaultSpawnOptions, ...options }
 
-    proc.on('exit', () => proc.kill())
-    proc.on('SIGINT', () => proc.kill())
-    proc.on('SIGUSR1', () => proc.kill())
-    proc.on('SIGUSR2', () => proc.kill())
-    proc.on('uncaughtException', () => proc.kill())
-    proc.on('SIGTERM', () => proc.kill())
+    const result: SpawnResult = {
+      code: 99,
+      cwd: mergedOptions.cwd?.toString() ?? process.cwd()
+    }
 
-    // const exitSignals = [`exit`, `SIGINT`, `SIGUSR1`, `SIGUSR2`, `uncaughtException`, `SIGTERM`]
-    // exitSignals.forEach((eventType) => {
-    //   proc.on(eventType, () => {
-    //     proc.kill()
-    //   })
-    // })
+    const child = spawn(command, args, mergedOptions)
 
-    proc.stdout?.on('data', (data) => {
-      result.stdout += data
-      if (liveOutput) {
-        log(data.toString())
-      }
+    child.on('close', (code) => {
+      result.code = code ?? 99
+      resolve(result)
     })
 
-    proc.stderr?.on('data', (data) => {
-      result.stderr += data
-      if (liveOutput) {
-        console.error(data.toString())
-      }
+    child.on('exit', (code) => {
+      result.code = code ?? 99
+      resolve(result)
     })
 
-    proc.on('error', (error) => {
-      reject(`Spawned process encountered an error: ${error}`)
+    child.on('error', (error) => {
+      result.error = error
+      resolve(result)
     })
 
-    proc.on('close', (code) => {
-      if (code === null) {
-        reject(`Spawned process returned a null result code: ${command}`)
-      } else {
-        result.code = code
-        resolve(result)
-      }
+    process.on('SIGINT', () => {
+      child.kill('SIGINT')
     })
   })
 }

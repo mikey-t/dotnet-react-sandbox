@@ -54,7 +54,7 @@
     "eslint": "^8.48.0",
     "fs-extra": "^11.1.1",
     "gulp": "^4.0.2",
-    "swig-cli": "^0.0.6",
+    "swig-cli": "^0.0.7",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2",
     "which": "^4.0.0",

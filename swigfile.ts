@@ -5,7 +5,7 @@ import { copyNewEnvValues, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
 import { series, parallel } from 'swig-cli'
 import path from 'node:path'
 import fs from 'node:fs'
-import { SpawnOptions, spawn } from 'node:child_process'
+import { log } from './swigHelpers.ts'
 import { spawnAsync } from './swigHelpers.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
@@ -85,15 +85,13 @@ async function ensureBuildDir() {
 async function startServer() {
   const command = 'dotnet'
   const args = ['watch', '--project', serverCsprojPath]
-  await spawnAsync(command, args, { stdio: 'inherit' }, true)
+  await spawnAsync(command, args)
 }
 
 async function startClient() {
-  // const command = 'npm'
-  // const args = ['run', 'dev']
   const command = 'node'
   const args = ['./node_modules/vite/bin/vite.js', 'dev']
-  await spawnAsync(command, args, { stdio: 'inherit', cwd: clientAppPath }, true)
+  await spawnAsync(command, args, { cwd: clientAppPath })
 }
 
 export const server = series(syncEnvFiles, startServer)

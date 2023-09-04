@@ -1,0 +1,20 @@
+{
+    "[javascript]": {
+        "editor.autoIndent": "full",
+        "editor.trimAutoWhitespace": false
+    },
+    "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+    "cSpell.words": [
+        "signin"
+    ],
+    "cSpell.ignorePaths": [
+        "package-lock.json",
+        "node_modules",
+        ".git",
+        ".vscode",
+        "dist",
+        "src/pages/Blog.tsx",
+        "src/pages/Pricing.tsx",
+        "src/pages/Products.tsx"
+    ]
+}

@@ -6,14 +6,16 @@ import { series, parallel } from 'swig-cli'
 import path from 'node:path'
 import fs from 'node:fs'
 import { SpawnOptions, spawn } from 'node:child_process'
+import { spawnAsync } from './swigHelpers.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
 
 const buildDir = './build'
 const buildWwwrootDir = './build/wwwroot'
-const clientAppPath = './src/client'
-const serverAppPath = './src/WebServer'
-const serverCsproj = `${serverAppPath}/WebServer.csproj`
+const clientAppPath = './client'
+const serverAppPath = './server/src/WebServer'
+const serverCsprojPath = `${serverAppPath}/WebServer.csproj`
+const serverTestPath = `./server/src/WebServer.Test`
 const tarballName = `${projectName}.tar.gz`
 const dockerPath = './docker'
 const dockerProjectName = projectName
@@ -21,61 +23,9 @@ const dockerDbContainerName = `${projectName}_postgres`
 const preDeployHttpPort = '3001'
 const preDeployHttpsPort = '3000'
 
-const dbMigratorPath = 'src/DbMigrator/'
+const dbMigratorPath = 'server/src/DbMigrator/'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
-
-function log(message?: unknown, ...optionalParams: unknown[]) {
-  console.log(message, ...optionalParams)
-}
-
-interface SpawnResult {
-  code: number
-  stdout: string
-  stderr: string
-  cwd?: string
-}
-
-async function spawnAsync(command: string, args: string[], options: SpawnOptions, liveOutput = false): Promise<SpawnResult> {
-  return new Promise((resolve, reject) => {
-    const result: SpawnResult = {
-      stdout: '',
-      stderr: '',
-      code: 99,
-      cwd: options.cwd?.toString()
-    }
-
-    const proc = spawn(command, args, options)
-
-
-    proc.stdout?.on('data', (data) => {
-      result.stdout += data
-      if (liveOutput) {
-        log(data.toString())
-      }
-    })
-
-    proc.stderr?.on('data', (data) => {
-      result.stderr += data
-      if (liveOutput) {
-        console.error(data.toString())
-      }
-    })
-
-    proc.on('error', (error) => {
-      reject(`Spawned process encountered an error: ${error}`)
-    })
-
-    proc.on('close', (code) => {
-      if (code === null) {
-        reject(`Spawned process returned a null result code: ${command}`)
-      } else {
-        result.code = code
-        resolve(result)
-      }
-    })
-  })
-}
 
 export async function syncEnvFiles() {
   const envName = '.env'
@@ -99,7 +49,7 @@ export async function syncEnvFiles() {
 
 async function writeServerTestEnv() {
   const envPath = '.env'
-  const testEnvPath = 'src/WebServer.Test/.env'
+  const testEnvPath = `${serverTestPath}/.env`
   const originalEnvString = fs.readFileSync(envPath, 'utf-8')
 
   const keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
@@ -134,13 +84,15 @@ async function ensureBuildDir() {
 
 async function startServer() {
   const command = 'dotnet'
-  const args = ['watch', '--project', serverCsproj]
+  const args = ['watch', '--project', serverCsprojPath]
   await spawnAsync(command, args, { stdio: 'inherit' }, true)
 }
 
 async function startClient() {
-  const command = 'npm'
-  const args = ['run', 'dev']
+  // const command = 'npm'
+  // const args = ['run', 'dev']
+  const command = 'node'
+  const args = ['./node_modules/vite/bin/vite.js', 'dev']
   await spawnAsync(command, args, { stdio: 'inherit', cwd: clientAppPath }, true)
 }
 

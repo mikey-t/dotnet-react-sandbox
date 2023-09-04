@@ -1,8 +1,6 @@
 {
-  "dotnet.defaultSolution": "dotnet-react-sandbox.sln",
-  "[javascript]": {
+  "[typescript]": {
     "editor.autoIndent": "full",
     "editor.trimAutoWhitespace": false
-  },
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true
+  }
 }

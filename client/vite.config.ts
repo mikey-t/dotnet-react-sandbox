@@ -25,7 +25,7 @@ export default ({ mode }) => {
     server: {
       host: host,
       https: {
-        pfx: fs.readFileSync(`../../cert/${devCertName}`)
+        pfx: fs.readFileSync(`../cert/${devCertName}`)
       },
       port: clientPort,
       strictPort: true,

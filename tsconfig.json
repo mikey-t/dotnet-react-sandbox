@@ -8,10 +8,15 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "allowSyntheticDefaultImports": true
+    "types": [
+      "node"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
-    "swigfile.ts"
+    "swigfile.ts",
+    "swigHelpers.ts"
   ],
   "exclude": [
     ".vscode",

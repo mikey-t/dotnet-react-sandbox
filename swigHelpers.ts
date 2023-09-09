@@ -4,10 +4,21 @@ import fs from 'node:fs'
 import path from 'node:path'
 import tar, { CreateOptions, FileOptions } from 'tar'
 import { platform } from 'node:os'
+import * as readline from 'readline'
+
+const TRACE_ENABLED = true
 
 export function log(message?: unknown, ...optionalParams: unknown[]) {
   console.log(message, ...optionalParams)
 }
+
+export function trace(message?: unknown, ...optionalParams: unknown[]) {
+  if (TRACE_ENABLED) {
+    console.log(message, ...optionalParams)
+  }
+}
+
+export type StringKeyedDictionary = { [name: string]: string }
 
 export interface SpawnResult {
   code: number
@@ -42,21 +53,19 @@ export async function sleep(ms: number): Promise<void> {
 export async function spawnAsync(command: string, args?: string[], options?: SpawnOptions, isLongRunning?: boolean): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
     try {
-      log(`parent listeners: ${process.listenerCount('SIGINT')}`)
-
       const defaultSpawnOptions: SpawnOptions = { stdio: 'inherit' }
       const argsToUse = args ?? []
-      const prefix = `[spawn ${command} ${argsToUse.join(' ')}] `
+      const logPrefix = `[${command} ${argsToUse.join(' ')}] `
       const mergedOptions = { ...defaultSpawnOptions, ...options }
       const result: SpawnResult = { code: 1, cwd: mergedOptions.cwd?.toString() ?? process.cwd() }
 
       // Windows has a bug where child processes are orphaned when using the shell option. This workaround will spawn
-      // a "middle" process to check whether parent process is still running at intervals and if not, kill the child process tree.
+      // a "middle" process using the shell option to check whether parent process is still running at intervals and if not, kill the child process tree.
       const workaroundCommand = 'node'
       const workaroundScript = path.join(process.cwd(), './runWhileParentAlive.mjs')
-      if (isLongRunning && isWindows() && mergedOptions.shell && command !== workaroundCommand && argsToUse[0] !== workaroundScript) {
-        log(`${prefix}Running on Windows with shell option - using middle process hack to prevent orphaned processes`)
-        spawnAsync(workaroundCommand, [workaroundScript, command, ...(args ?? [])], mergedOptions)
+      if (isLongRunning && isWindows() && command !== workaroundCommand && argsToUse[0] !== workaroundScript) {
+        trace(`${logPrefix}Running on Windows with shell option - using middle process hack to prevent orphaned processes`)
+        spawnAsync(workaroundCommand, [workaroundScript, command, ...(args ?? [])], { ...mergedOptions, shell: true })
           .then((workaroundResult) => {
             result.code = workaroundResult.code
             resolve(result)
@@ -69,21 +78,23 @@ export async function spawnAsync(command: string, args?: string[], options?: Spa
       const child = spawn(command, argsToUse, mergedOptions)
       const childId: number | undefined = child.pid
       if (childId === undefined) {
-        throw new Error(`${prefix}ChildProcess pid is undefined - spawn failed`)
+        throw new Error(`${logPrefix}ChildProcess pid is undefined - spawn failed`)
       }
 
-      const listener = new SignalListener(child, prefix)
+      const listener = new SignalListener(child, logPrefix)
 
       child.on('exit', (code, signal) => {
-        log(`${prefix}ChildProcess exited with code ${code} and signal ${signal}`)
-        result.code = code === null ? 0 : code // Using 0 for null since ctrl+c will return null in some cases apparently
+        const signalMessage = signal ? ` with signal ${signal}` : ''
+        trace(`${logPrefix}ChildProcess exited with code ${code}${signalMessage}`)
+        // If long running, ctrl+c will cause null, which we don't necessarily want to consider an error
+        result.code = (code === null && isLongRunning) ? 0 : code ?? 1
         child.removeAllListeners()
         listener.detach()
         resolve(result)
       })
 
       child.on('error', (error) => {
-        log(`${prefix}ChildProcess emitted an error event: `, error)
+        trace(`${logPrefix}ChildProcess emitted an error event: `, error)
       })
     } catch (err) {
       reject(err)
@@ -104,7 +115,7 @@ class SignalListener {
 
   // Arrow function provides unique handler function for each instance of SignalListener
   private handler = (signal: NodeJS.Signals) => {
-    console.log(`${this.logPrefix}Process received ${signal} - killing ChildProcess with ID ${this.child.pid}`)
+    trace(`${this.logPrefix}Process received ${signal} - killing ChildProcess with ID ${this.child.pid}`)
     this.child.kill(signal)
     this.detach()
   }
@@ -142,7 +153,7 @@ export async function emptyDirectory(directoryToEmpty: string, fileAndDirectoryN
   requireString('directoryToEmpty', directoryToEmpty)
 
   if (!fs.existsSync(directoryToEmpty)) {
-    log(`directoryToEmpty does not exist - creating directory ${directoryToEmpty}`)
+    trace(`directoryToEmpty does not exist - creating directory ${directoryToEmpty}`)
     await fsp.mkdir(directoryToEmpty, { recursive: true })
   }
 
@@ -220,6 +231,11 @@ export async function copyDirectoryContents(sourceDirectory: string, destination
   }
 }
 
+export async function dotnetBuild(projectPath: string) {
+  requireValidPath('projectPath', projectPath)
+  await spawnAsync('dotnet', ['build', projectPath])
+}
+
 /**
  * Helper method to spawn a process and run 'dotnet publish'.
  * 
@@ -236,11 +252,11 @@ export async function dotnetPublish(projectPath: string = './', configuration: s
     requireValidPath('cwd', cwd)
   }
   const args = ['publish', projectPath, '-c', configuration, '-o', outputDir]
-  log(`running dotnet ${args.join(' ')}${cwd ? ` in cwd ${cwd}` : ''}`)
+  trace(`running dotnet ${args.join(' ')}${cwd ? ` in cwd ${cwd}` : ''}`)
   await spawnAsync('dotnet', args, { cwd: cwd })
 }
 
-function requireString(paramName: string, paramValue: string) {
+export function requireString(paramName: string, paramValue: string) {
   if (paramValue === undefined || paramValue === null || paramValue === '') {
     throw new Error(`Required param '${paramName}' is missing`)
   }
@@ -249,7 +265,7 @@ function requireString(paramName: string, paramValue: string) {
   }
 }
 
-function requireValidPath(paramName: string, paramValue: string) {
+export function requireValidPath(paramName: string, paramValue: string) {
   requireString(paramName, paramValue)
 
   if (!fs.existsSync(paramValue)) {
@@ -282,10 +298,10 @@ export async function createTarball(directoryToTarball: string, tarballPath: str
   const tarballName = path.basename(tarballPath)
 
   if (!fs.existsSync(outputDirectory)) {
-    log(`tarballPath directory does not exist - creating '${outputDirectory}'`)
+    trace(`tarballPath directory does not exist - creating '${outputDirectory}'`)
     await fsp.mkdir(outputDirectory, { recursive: true })
   } else if (fs.existsSync(tarballPath)) {
-    log(`removing existing tarball '${tarballName}' before creating new one`)
+    trace(`removing existing tarball '${tarballName}' before creating new one`)
     await fsp.unlink(tarballPath)
   }
 
@@ -293,7 +309,7 @@ export async function createTarball(directoryToTarball: string, tarballPath: str
   const fileList: ReadonlyArray<string> = [directoryToTarballName]
   await (tar.create as (options: CreateOptions & FileOptions, fileList: ReadonlyArray<string>) => Promise<void>)(options, fileList)
 
-  log('tarball created: ' + tarballPath)
+  trace('tarball created: ' + tarballPath)
 }
 
 /**
@@ -354,7 +370,7 @@ export async function spawnDockerCompose(dockerComposePath: string, dockerCompos
     `running command in ${dockerComposeDir}: ${dockerCommandString}` :
     `running command: ${dockerCommandString}`
 
-  log(traceMessage)
+  trace(traceMessage)
 
   const longRunning = dockerComposeCommandsThatSupportDetached.includes(dockerComposeCommand) && options && !options.detached
 
@@ -371,7 +387,7 @@ export async function spawnDockerCompose(dockerComposePath: string, dockerCompos
  * @param str String to split into lines
  * @returns An array of lines from the string, with empty lines removed
  */
-export function stringToLines(str: string): string[] {
+export function stringToNonEmptyLines(str: string): string[] {
   if (!str) { return [] }
   return str.split('\n').filter(line => line && line.trim()).map(line => line.replace('\r', ''))
 }
@@ -412,7 +428,7 @@ export function getSimpleSpawnResultSync(command: string, args?: string[]): Simp
     status: result.status,
     stdout: result.stdout.toString(),
     stderr: result.stdout.toString(),
-    stdoutLines: stringToLines(result.stdout.toString()),
+    stdoutLines: stringToNonEmptyLines(result.stdout.toString()),
     error: result.error
   }
 }
@@ -452,6 +468,36 @@ export async function isDockerRunning(): Promise<boolean> {
         }
       }
 
+    })
+  })
+}
+
+export function askQuestion(query: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  return new Promise(resolve =>
+    rl.question(`\n${query}\n`, ans => {
+      rl.close()
+      resolve(ans)
+    })
+  )
+}
+
+export function getConfirmation(question: string): Promise<boolean> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  return new Promise((resolve) => {
+    rl.question(`\n  ❓ ${question}\n  ➡️ Proceed? (yes/no): `, (answer) => {
+      rl.close()
+      const confirmed = answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes'
+      log(confirmed ? '  ✅ Proceeding\n' : '  ❌ Aborting\n')
+      resolve(confirmed)
     })
   })
 }

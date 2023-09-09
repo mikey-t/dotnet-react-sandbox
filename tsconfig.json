@@ -16,7 +16,8 @@
   },
   "include": [
     "swigfile.ts",
-    "swigHelpers.ts"
+    "swigHelpers.ts",
+    "swigDbMigratorHelpers.ts"
   ],
   "exclude": [
     ".vscode",

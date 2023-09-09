@@ -6,8 +6,9 @@ import { series, parallel } from 'swig-cli'
 import path from 'node:path'
 import fsp from 'node:fs/promises'
 import fs from 'node:fs'
-import { copyDirectoryContents, createTarball, dotnetPublish, emptyDirectory, isDockerRunning as doIsDockerRunning, log, spawnDockerCompose, DockerComposeCommand } from './swigHelpers.ts'
+import { copyDirectoryContents, createTarball, dotnetPublish, emptyDirectory, isDockerRunning as doIsDockerRunning, log, spawnDockerCompose, DockerComposeCommand, askQuestion, getConfirmation, StringKeyedDictionary, dotnetBuild } from './swigHelpers.ts'
 import { spawnAsync, whichSync } from './swigHelpers.ts'
+import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './swigDbMigratorHelpers.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
 
@@ -152,57 +153,160 @@ async function doWhich() {
   log('which result', result)
 }
 
-async function doDockerCompose(dockerComposeCommand: DockerComposeCommand, detached = false) {
-  await spawnDockerCompose(dockerComposePath, dockerComposeCommand, { projectName: dockerProjectName, detached: detached })
+async function doDockerCompose(dockerComposeCommand: DockerComposeCommand, attached = false) {
+  await spawnDockerCompose(dockerComposePath, dockerComposeCommand, { projectName: dockerProjectName, detached: !attached })
+}
+
+async function getConfirmationExample() {
+  if (await getConfirmation('Do you even?')) {
+    log('you do even')
+  } else {
+    log('you do not even')
+  }
+}
+
+async function dbMigratorCliCommand(command: string) {
+  if (command === 'dbDropAll' && !await getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
+    return
+  }
+  if (command === 'dbDropAndRecreate') {
+    if (!await getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
+      return
+    } else {
+      await spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbDropAll'])
+      await spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
+      return
+    }
+  }
+  throw new Error(`Unknown DbMigrator command: ${command}`)
+}
+
+const dbContextOptions = ['main', 'test', 'both']
+
+const dbContexts: StringKeyedDictionary = {
+  main: mainDbContextName,
+  test: testDbContextName
+}
+
+function getDbContextArg() {
+  const additionalArg = process.argv[3]
+  return additionalArg && dbContextOptions.includes(additionalArg) ? additionalArg : 'main'
+}
+
+function getMigrationNameArg() {
+  const migrationName = process.argv[4] || process.argv[3]
+  return migrationName && !dbContextOptions.includes(migrationName) ? migrationName : undefined
+}
+
+function logDbCommandMessage(prefix: string) {
+  log(`${prefix} using project path 📁${dbMigratorPath} and db context arg ⚙️${getDbContextArg()} (options: ${dbContextOptions.join('|')})`)
+}
+
+async function executeEfAction(action: 'list' | 'update' | 'add' | 'remove') {
+  const dbContextArg = getDbContextArg()
+  const migrationName = getMigrationNameArg()
+
+  log(`dbContextArg: ${dbContextArg}`)
+  log(`migrationName: ${migrationName}`)
+
+  if (action === 'add' && !migrationName) {
+    throw new Error('Missing migration name')
+  }
+
+  // Build once explicitly so that all commands can use the noBuild option.
+  // This will speed up operations that require multiple 'dotnet ef' commands.
+  await dotnetBuild(dbMigratorPath)
+
+  for (const key of Object.keys(dbContexts)) {
+    if (dbContextArg === key || dbContextArg === 'both') {
+      const dbContextName = dbContexts[key]
+      switch (action) {
+        case 'list':
+          await efMigrationsList(dbMigratorPath, dbContextName)
+          break
+        case 'update':
+          log(migrationName ? `Updating ➡️${dbContextName} to migration name: ${migrationName}` : `Updating ➡️${dbContextName} to latest migration`)
+          await efMigrationsUpdate(dbMigratorPath, dbContextName, migrationName)
+          break
+        case 'add':
+          log(`Adding migration ➡️${migrationName} to ➡️${dbContextName}`)
+          await efAddMigration(dbMigratorPath, dbContextName, migrationName!, true)
+          break
+        case 'remove':
+          log(`Removing last migration from ➡️${dbContextName}`)
+          await efRemoveLastMigration(dbMigratorPath, dbContextName)
+          break
+      }
+    }
+  }
+}
+
+async function doListMigrations() {
+  logDbCommandMessage('Listing migrations')
+  await executeEfAction('list')
+}
+
+async function doDbMigrate() {
+  logDbCommandMessage('Updating database')
+  await executeEfAction('update')
+}
+
+async function doDbAddMigration() {
+  logDbCommandMessage('Adding migration')
+  await executeEfAction('add')
+}
+
+async function doDbRemoveMigration() {
+  logDbCommandMessage('Removing last migration')
+  await executeEfAction('remove')
 }
 
 export const server = series(syncEnvFiles, runServer)
 export const client = series(syncEnvFiles, runClient)
+
 export const testServer = series(syncEnvFiles, doTestServer)
+
 export const buildClient = series(syncEnvFiles, doBuildClient)
+export const copyClientBuildOnly = doCopyClientBuild
 export const buildServer = series(syncEnvFiles, doBuildServer)
 export const createDbMigratorRelease = series(parallel(syncEnvFiles, ensureReleaseDir), doCreateDbMigratorRelease)
 export const buildAll = series(parallel(syncEnvFiles, ensureReleaseDir), parallel(doBuildClient, doBuildServer), doCopyClientBuild)
+
 export const runBuilt = series(syncEnvFiles) // TODO: come back to this one
+
 export const createRelease = parallel(series(buildAll, createReleaseTarball), doCreateDbMigratorRelease)
 export const createReleaseTarballOnly = createReleaseTarball
-export const dockerUp = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('up', true)])
-export const dockerUpAttached = series(syncEnvFiles, ['dockerDown', async () => doDockerCompose('down')], ['dockerUpAttached', async () => doDockerCompose('up')])
+
+export const dockerUp = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('up')])
+export const dockerUpAttached = series(syncEnvFiles, ['dockerDown', async () => doDockerCompose('down')], ['dockerUpAttached', async () => doDockerCompose('up', true)])
 export const dockerDown = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('down')])
-export const dbInitialCreate = series(syncEnvFiles)
-export const dbDropAll = series(syncEnvFiles)
-export const dbDropAndRecreate = series(syncEnvFiles)
-export const dbMigrationsList = series(syncEnvFiles)
-export const dbMigrate = series(syncEnvFiles)
-export const dbAddMigration = series(syncEnvFiles)
-export const dbRemoveMigration = series(syncEnvFiles)
-export const dbMigrateFromBuilt = series(syncEnvFiles)
-export const testDbMigrationsList = series(syncEnvFiles)
-export const testDbMigrate = series(syncEnvFiles)
-export const testDbAddMigration = series(syncEnvFiles)
-export const testDbRemoveMigration = series(syncEnvFiles)
-export const bothDbMigrationsList = series(syncEnvFiles)
-export const bothDbMigrate = series(syncEnvFiles)
-export const bothDbAddMigration = series(syncEnvFiles)
-export const bothDbRemoveMigration = series(syncEnvFiles)
+
+export const dbInitialCreate = series(syncEnvFiles, ['dbInitialCreate', async () => dbMigratorCliCommand('dbInitialCreate')])
+export const dbDropAll = series(syncEnvFiles, ['dbDropAll', async () => dbMigratorCliCommand('dbDropAll')])
+export const dbDropAndRecreate = series(syncEnvFiles, ['dbDropAndRecreate', async () => dbMigratorCliCommand('dbDropAndRecreate')])
+
 export const installDotnetEfTool = series(syncEnvFiles)
 export const updateDotnetEfTool = series(syncEnvFiles)
-export const copyClientBuildOnly = doCopyClientBuild
+
+export const dbListMigrations = series(syncEnvFiles, doListMigrations)
+export const dbMigrate = series(syncEnvFiles, doDbMigrate)
+export const dbAddMigration = series(syncEnvFiles, doDbAddMigration)
+export const dbRemoveMigration = series(syncEnvFiles, doDbRemoveMigration)
+
 export const generateCert = series(syncEnvFiles)
 export const winInstallCert = series(syncEnvFiles)
 export const winUninstallCert = series(syncEnvFiles)
 export const linuxInstallCert = series(syncEnvFiles)
 
+export const ask = getConfirmationExample
 export const which = doWhich
 export const isDockerRunning = async () => log(`docker is running: ${await doIsDockerRunning()}`)
 
-export async function clean() {
-  log('cleaning...')
+export async function deleteBuildAndRelease() {
   const dirs = [
     './build',
     './release'
   ]
-
   for (const dir of dirs) {
     if (fs.existsSync(dir)) {
       fs.rmSync(dir, { recursive: true })

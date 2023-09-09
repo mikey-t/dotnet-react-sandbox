@@ -293,6 +293,17 @@ async function doRunBuilt() {
   await spawnAsync('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { cwd: './build/' }, true)
 }
 
+export async function installOrUpdateDotnetEfTool() {
+  const installed = whichSync('dotnet-ef').location
+  if (installed) {
+    log('dotnet-ef tool already installed, updating...')
+  } else {
+    log('dotnet-ef tool not installed, installing...')
+  }
+  const args = ['tool', installed ? 'update' : 'install', '--global', 'dotnet-ef']
+  await spawnAsync('dotnet', args)
+}
+
 export const server = series(syncEnvFiles, runServer)
 export const client = series(syncEnvFiles, runClient)
 
@@ -316,9 +327,6 @@ export const dockerDown = series(syncEnvFiles, ['dockerUp', async () => doDocker
 export const dbInitialCreate = series(syncEnvFiles, ['dbInitialCreate', async () => dbMigratorCliCommand('dbInitialCreate')])
 export const dbDropAll = series(syncEnvFiles, ['dbDropAll', async () => dbMigratorCliCommand('dbDropAll')])
 export const dbDropAndRecreate = series(syncEnvFiles, ['dbDropAndRecreate', async () => dbMigratorCliCommand('dbDropAndRecreate')])
-
-export const installDotnetEfTool = series(syncEnvFiles)
-export const updateDotnetEfTool = series(syncEnvFiles)
 
 export const dbListMigrations = series(syncEnvFiles, doListMigrations)
 export const dbMigrate = series(syncEnvFiles, doDbMigrate)

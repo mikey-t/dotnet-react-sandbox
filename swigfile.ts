@@ -9,6 +9,7 @@ import fs from 'node:fs'
 import { copyDirectoryContents, createTarball, dotnetPublish, emptyDirectory, isDockerRunning as doIsDockerRunning, log, spawnDockerCompose, DockerComposeCommand, askQuestion, getConfirmation, StringKeyedDictionary, dotnetBuild } from './swigHelpers.ts'
 import { spawnAsync, whichSync } from './swigHelpers.ts'
 import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './swigDbMigratorHelpers.ts'
+import 'dotenv/config'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
 
@@ -277,6 +278,21 @@ async function doDbRemoveMigration() {
   await executeEfAction('remove')
 }
 
+async function doRunBuilt() {
+  const buildEnvPath = path.join(buildDir, '.env')
+  await fsp.writeFile(buildEnvPath, '\nASPNETCORE_ENVIRONMENT=Production', { flag: 'a' })
+  await fsp.writeFile(buildEnvPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, { flag: 'a' })
+  await fsp.writeFile(buildEnvPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, { flag: 'a' })
+  const devCertName = process.env.DEV_CERT_NAME
+  if (!devCertName) {
+    throw new Error('Missing DEV_CERT_NAME env var')
+  }
+  const certSourcePath = path.join('./cert/', devCertName)
+  const certDestinationPath = path.join(buildDir, devCertName)
+  await fsp.copyFile(certSourcePath, certDestinationPath)
+  await spawnAsync('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { cwd: './build/' }, true)
+}
+
 export const server = series(syncEnvFiles, runServer)
 export const client = series(syncEnvFiles, runClient)
 
@@ -288,7 +304,7 @@ export const buildServer = series(syncEnvFiles, doBuildServer)
 export const createDbMigratorRelease = series(parallel(syncEnvFiles, ensureReleaseDir), doCreateDbMigratorRelease)
 export const buildAll = series(parallel(syncEnvFiles, ensureReleaseDir), parallel(doBuildClient, doBuildServer), doCopyClientBuild)
 
-export const runBuilt = series(syncEnvFiles) // TODO: come back to this one
+export const runBuilt = series(syncEnvFiles, doRunBuilt)
 
 export const createRelease = parallel(series(buildAll, createReleaseTarball), doCreateDbMigratorRelease)
 export const createReleaseTarballOnly = createReleaseTarball

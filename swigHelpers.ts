@@ -313,16 +313,18 @@ export async function createTarball(directoryToTarball: string, tarballPath: str
 }
 
 /**
- * Options for the dockerCompose function.
+ * Options for the spawnDockerCompose wrapper function for `docker compose`.
  * 
- * @param args Additional arguments to pass to the docker-compose command
- * @param projectName Pass the same projectName for each commands for the same project to ensure your containers get unique, descriptive and consistent names
- * @param detached Default: false. Commands that use -d: exec, logs, ps, restart, run, start, stop, up
+ * @param args        Additional arguments to pass to the docker-compose command
+ * @param projectName Pass the same projectName for each commands for the same project to ensure your containers get unique, descriptive and consistent names.
+ *                    Note that there are other better options such as using the environment variable `COMPOSE_PROJECT_NAME`. See https://docs.docker.com/compose/environment-variables/envvars/#compose_project_name.
+ * @param attached    Default: false. All commands that support the detached option wil use it unless attached is specified as true (-d support: exec, logs, ps, restart, run, start, stop, up)
+ * @param useDockerComposeFileDirectoryAsCwd Default: false. If true, the docker compose command will be run in the directory containing the docker compose file.
  */
 export interface DockerComposeOptions {
   args?: string[]
   projectName?: string
-  detached?: boolean
+  attached?: boolean
   useDockerComposeFileDirectoryAsCwd?: boolean
 }
 
@@ -343,7 +345,8 @@ export async function spawnDockerCompose(dockerComposePath: string, dockerCompos
     throw new Error('Docker is not running')
   }
 
-  const mergedOptions = { ...{ detached: false }, ...options }
+  const defaultOptions: DockerComposeOptions = { attached: false }
+  const mergedOptions = { ...defaultOptions, ...options }
 
   const dockerComposeDir = path.dirname(dockerComposePath)
   const dockerComposeFilename = path.basename(dockerComposePath)
@@ -357,7 +360,7 @@ export async function spawnDockerCompose(dockerComposePath: string, dockerCompos
 
   spawnArgs.push(dockerComposeCommand)
 
-  if (mergedOptions.detached && dockerComposeCommandsThatSupportDetached.includes(dockerComposeCommand)) {
+  if (!mergedOptions.attached && dockerComposeCommandsThatSupportDetached.includes(dockerComposeCommand)) {
     spawnArgs.push('-d')
   }
 
@@ -372,7 +375,7 @@ export async function spawnDockerCompose(dockerComposePath: string, dockerCompos
 
   trace(traceMessage)
 
-  const longRunning = dockerComposeCommandsThatSupportDetached.includes(dockerComposeCommand) && options && !options.detached
+  const longRunning = dockerComposeCommandsThatSupportDetached.includes(dockerComposeCommand) && options && options.attached
 
   const spawnResult = await spawnAsync(spawnCommand, spawnArgs, { cwd: useDockerComposeFileDirectoryAsCwd ? dockerComposeDir : process.cwd(), shell: true }, longRunning)
 

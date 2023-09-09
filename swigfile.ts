@@ -32,24 +32,36 @@ const dbMigratorPath = 'server/src/DbMigrator/'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
 
-export async function syncEnvFiles() {
-  const envName = '.env'
+const directoriesWithEnv = [dockerPath, serverPath, clientPath, dbMigratorPath, buildDir]
 
-  const rootEnv = './.env'
-  const rootEnvTemplate = rootEnv + '.template'
+export async function syncEnvFiles() {
+  const rootEnvPath = './.env'
+
+  if (process.argv[3] && process.argv[3] === 'clean') {
+    await deleteEnvCopies()
+  }
 
   // Copy root .env.[category].template to .env
-  await copyNewEnvValues(rootEnvTemplate, rootEnv)
-
-  // Copy root .env.[category] to subdirectory .env files
-  await overwriteEnvFile(rootEnv, path.join(serverPath, envName))
-  await overwriteEnvFile(rootEnv, path.join(dockerPath, envName))
-  await overwriteEnvFile(rootEnv, path.join(dbMigratorPath, envName))
-  await overwriteEnvFile(rootEnv, path.join(clientPath, envName))
-  await writeServerTestEnv()
+  await copyNewEnvValues(rootEnvPath + '.template', rootEnvPath)
 
   await ensureBuildDir()
-  await overwriteEnvFile(rootEnv, path.join(buildDir, envName))
+
+  for (const dir of directoriesWithEnv) {
+    await overwriteEnvFile(rootEnvPath, path.join(dir, '.env'))
+  }
+
+  await writeServerTestEnv()
+}
+
+export async function deleteEnvCopies() {
+  log('deleting existing .env copies before syncing')
+  for (const dir of directoriesWithEnv) {
+    const envPath = path.join(dir, '.env')
+    if (fs.existsSync(envPath)) {
+      log('deleting .env file at path', envPath)
+      await fsp.unlink(envPath)
+    }
+  }
 }
 
 async function writeServerTestEnv() {
@@ -90,13 +102,13 @@ async function ensureBuildDir() {
 async function runServer() {
   const command = 'dotnet'
   const args = ['watch', '--project', serverCsprojPath]
-  await spawnAsync(command, args)
+  await spawnAsync(command, args, {}, true)
 }
 
 async function runClient() {
   const command = 'node'
   const args = ['./node_modules/vite/bin/vite.js', 'dev']
-  await spawnAsync(command, args, { cwd: clientPath })
+  await spawnAsync(command, args, { cwd: clientPath }, true)
 }
 
 async function doTestServer() {
@@ -153,8 +165,12 @@ async function doWhich() {
   log('which result', result)
 }
 
-async function doDockerCompose(dockerComposeCommand: DockerComposeCommand, attached = false) {
-  await spawnDockerCompose(dockerComposePath, dockerComposeCommand, { projectName: dockerProjectName, detached: !attached })
+async function doDockerCompose(upOrDown: 'up' | 'down', attached = false) {
+  await spawnDockerCompose(dockerComposePath, upOrDown, { attached })
+}
+
+async function bashIntoPostgresContainer() {
+  await spawnDockerCompose(dockerComposePath, 'exec', { args: ['-it', 'postgresql', 'bash'], attached: true })
 }
 
 async function getConfirmationExample() {
@@ -297,6 +313,8 @@ export const generateCert = series(syncEnvFiles)
 export const winInstallCert = series(syncEnvFiles)
 export const winUninstallCert = series(syncEnvFiles)
 export const linuxInstallCert = series(syncEnvFiles)
+
+export const bashIntoDb = series(syncEnvFiles, bashIntoPostgresContainer)
 
 export const ask = getConfirmationExample
 export const which = doWhich

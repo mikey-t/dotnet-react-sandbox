@@ -63,7 +63,7 @@ export async function spawnAsync(command: string, args?: string[], options?: Spa
       // a "middle" process using the shell option to check whether parent process is still running at intervals and if not, kill the child process tree.
       const workaroundCommand = 'node'
       const workaroundScript = path.join(process.cwd(), './runWhileParentAlive.mjs')
-      if (isLongRunning && isWindows() && command !== workaroundCommand && argsToUse[0] !== workaroundScript) {
+      if (isLongRunning && isPlatformWindows() && command !== workaroundCommand && argsToUse[0] !== workaroundScript) {
         trace(`${logPrefix}Running on Windows with shell option - using middle process hack to prevent orphaned processes`)
         spawnAsync(workaroundCommand, [workaroundScript, command, ...(args ?? [])], { ...mergedOptions, shell: true })
           .then((workaroundResult) => {
@@ -407,7 +407,7 @@ export function stringToNonEmptyLines(str: string): string[] {
  * @returns An object with the status code, stdout, stderr, and error (if any)
  */
 export function getSimpleCmdResultSync(command: string, args?: string[]): SimpleSpawnResult {
-  if (!isWindows()) {
+  if (!isPlatformWindows()) {
     throw new Error('getCmdResult is only supported on Windows')
   }
   return getSimpleSpawnResultSync('cmd', ['/D', '/S', '/C', command, ...(args ?? [])])
@@ -436,12 +436,20 @@ export function getSimpleSpawnResultSync(command: string, args?: string[]): Simp
   }
 }
 
-export function isWindows() {
+export function isPlatformWindows() {
   return platform() === 'win32'
 }
 
+export function isPlatformMac() {
+  return platform() === 'darwin'
+}
+
+export function isPlatformLinux() {
+  return !isPlatformWindows() && !isPlatformMac()
+}
+
 export function whichSync(commandName: string): WhichResult {
-  if (isWindows()) {
+  if (isPlatformWindows()) {
     const result = getSimpleCmdResultSync('where', [commandName])
     return {
       location: result.stdoutLines[0],

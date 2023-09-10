@@ -1,5 +1,5 @@
 // @ts-ignore
-import { copyNewEnvValues, generateCertWithOpenSsl, linuxInstallCert as oldLinuxInstallCert, winInstallCert as oldWinInstallCert, winUninstallCert as oldWinUninstallCert, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
+import { copyNewEnvValues, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
 import 'dotenv/config'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
@@ -7,8 +7,9 @@ import path from 'node:path'
 import { parallel, series } from 'swig-cli'
 import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './moveToNodeCliDbMigrator.ts'
 import { StringKeyedDictionary, configureDotnetDevCerts, copyDirectoryContents, createTarball, dotnetBuild, dotnetPublish, emptyDirectory, getConfirmation, installOrUpdateDotnetEfTool, log, spawnAsync, spawnDockerCompose } from './moveToNodeCliGeneral.ts'
+import { winInstallCert as doWinInstallCert, winUninstallCert as doWinUninstallCert, generateCertWithOpenSsl, linuxInstallCert as doLinuxInstallCert } from './moveToNodeCliCertUtils.ts'
 
-const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
+const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 const buildDir = './build'
 const releaseDir = './release'
 const buildWwwrootDir = `${buildDir}/wwwroot`
@@ -111,17 +112,16 @@ export async function winInstallCert() {
     await generateCertWithOpenSsl(url)
   }
   log(`attempting to install cert for url ${url}`)
-  await oldWinInstallCert(url)
+  await doWinInstallCert(url)
 }
 
 export async function winUninstallCert() {
   const certSubject = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winUninstallCert local.acme.com')
-  await oldWinUninstallCert(certSubject)
+  await doWinUninstallCert(certSubject)
 }
 
-// This doesn't actually install anything - it just dumps out instructions for how to do it manually...
 export async function linuxInstallCert() {
-  oldLinuxInstallCert()
+  doLinuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
 }
 
 //*********************************************

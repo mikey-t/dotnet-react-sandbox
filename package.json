@@ -8,7 +8,6 @@
   },
   "devDependencies": {
     "@mikeyt23/node-cli-utils": "^1.4.1",
-    "@types/fs-extra": "^11.0.1",
     "@types/node": "^20.5.9",
     "@types/tar": "^6.1.5",
     "@typescript-eslint/eslint-plugin": "^6.5.0",

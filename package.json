@@ -14,7 +14,7 @@
     "@typescript-eslint/parser": "^6.5.0",
     "dotenv": "^16.3.1",
     "eslint": "^8.48.0",
-    "swig-cli": "^0.0.8",
+    "swig-cli": "^0.0.9",
     "tar": "^6.2.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"

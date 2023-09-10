@@ -1,29 +1,30 @@
-// @ts-ignore
-import { copyNewEnvValues, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
 import 'dotenv/config'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { parallel, series } from 'swig-cli'
+import * as certUtils from './moveToNodeCliCertUtils.ts'
 import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './moveToNodeCliDbMigrator.ts'
-import { StringKeyedDictionary, configureDotnetDevCerts, copyDirectoryContents, copyModifiedEnv, createTarball, deleteEnvIfExists, dotnetBuild, dotnetPublish, emptyDirectory, ensureDirectory, getConfirmation, installOrUpdateDotnetEfTool, log, spawnAsync, spawnDockerCompose } from './moveToNodeCliGeneral.ts'
-import { winInstallCert as doWinInstallCert, winUninstallCert as doWinUninstallCert, generateCertWithOpenSsl, linuxInstallCert as doLinuxInstallCert } from './moveToNodeCliCertUtils.ts'
+import * as nodeCliUtils from './moveToNodeCliGeneral.ts'
+import { log } from './moveToNodeCliGeneral.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
+
 const buildDir = './build'
-const releaseDir = './release'
 const buildWwwrootDir = `${buildDir}/wwwroot`
-const clientPath = './client'
+const releaseDir = './release'
+const dockerPath = './docker'
 const serverPath = './server/src/WebServer'
-const serverCsprojPath = `${serverPath}/WebServer.csproj`
 const serverTestPath = `./server/src/WebServer.Test`
+const clientPath = './client'
+const dbMigratorPath = 'server/src/DbMigrator/'
+
 const releaseTarballName = `${projectName}.tar.gz`
 const dbMigratorTarballName = 'DbMigrator.tar.gz'
-const dockerPath = './docker'
 const dockerComposePath = `${dockerPath}/docker-compose.yml`
+const serverCsprojPath = `${serverPath}/WebServer.csproj`
 const preDeployHttpsPort = '3000'
 const preDeployHttpPort = '3001'
-const dbMigratorPath = 'server/src/DbMigrator/'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
 const directoriesWithEnv = [dockerPath, serverPath, serverTestPath, dbMigratorPath, clientPath, buildDir]
@@ -59,10 +60,8 @@ export const dbRemoveMigration = series(syncEnvFiles, doDbRemoveMigration)
 
 export const bashIntoDb = series(syncEnvFiles, bashIntoPostgresContainer)
 
-export {
-  installOrUpdateDotnetEfTool,
-  configureDotnetDevCerts
-}
+export const installOrUpdateDotnetEfTool = nodeCliUtils.installOrUpdateDotnetEfTool
+export const configureDotnetDevCerts = nodeCliUtils.configureDotnetDevCerts
 
 export async function deleteBuildAndRelease() {
   const dirs = ['./build', './release']
@@ -73,18 +72,26 @@ export async function deleteBuildAndRelease() {
   }
 }
 
+/**
+ * Copies any new values from .env.template to .env and then copies .env to all directories in directoriesWithEnv.
+ * Values added directly to .env files in directoriesWithEnv will not be overwritten, but this is not recommended.
+ * Instead, use your root .env file as the source of truth and never directly modify the others unless it's temporary.
+ * 
+ * Use additional arg 'clean' to delete all the non-root .env copies before making new copies. Useful for removing
+ * values that are no longer in the root .env file.
+ */
 export async function syncEnvFiles() {
   const rootEnvPath = './.env'
   if (process.argv[3] && process.argv[3] === 'clean') {
-    log(`syncEnvFiles called with 'clean' arg, deleting .env copies in ${directoriesWithEnv.join(', ')}`)
+    log(`syncEnvFiles called with 'clean' arg - deleting .env copies`)
     await deleteEnvCopies()
   }
-  await copyNewEnvValues(`${rootEnvPath}.template`, rootEnvPath)
-  await ensureDirectory(buildWwwrootDir)
+  await nodeCliUtils.copyNewEnvValues(`${rootEnvPath}.template`, rootEnvPath)
+  await nodeCliUtils.ensureDirectory(buildWwwrootDir)
   for (const dir of directoriesWithEnv) {
-    await overwriteEnvFile(rootEnvPath, path.join(dir, '.env'))
+    await nodeCliUtils.overwriteEnvFile(rootEnvPath, path.join(dir, '.env'), dir === serverTestPath)
   }
-  await copyModifiedEnv(
+  await nodeCliUtils.copyModifiedEnv(
     rootEnvPath,
     `${serverTestPath}/.env`,
     ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'],
@@ -97,14 +104,14 @@ export async function deleteEnvCopies() {
     const envPath = path.join(dir, '.env')
     if (fs.existsSync(envPath)) {
       log('deleting .env file at path', envPath)
-      await deleteEnvIfExists(envPath)
+      await nodeCliUtils.deleteEnvIfExists(envPath)
     }
   }
 }
 
 export async function generateCert() {
   const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig generateCert local.acme.com')
-  await generateCertWithOpenSsl(url)
+  await certUtils.generateCertWithOpenSsl(url)
 }
 
 export async function winInstallCert() {
@@ -114,96 +121,99 @@ export async function winInstallCert() {
     log(`Cert already exists at path ${certPath}`)
   } else {
     log(`Cert does not exist at path ${certPath}, generating...`)
-    await generateCertWithOpenSsl(url)
+    await certUtils.generateCertWithOpenSsl(url)
   }
   log(`attempting to install cert for url ${url}`)
-  await doWinInstallCert(url)
+  await certUtils.winInstallCert(url)
 }
 
 export async function winUninstallCert() {
   const certSubject = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winUninstallCert local.acme.com')
-  await doWinUninstallCert(certSubject)
+  await certUtils.winUninstallCert(certSubject)
 }
 
 export async function linuxInstallCert() {
-  doLinuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
+  certUtils.linuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
 }
 
-//*********************************************
+// End exported functions //
+//**************************
+// Start helper functions //
 
 async function runServer() {
   const command = 'dotnet'
   const args = ['watch', '--project', serverCsprojPath]
-  await spawnAsync(command, args, {}, true)
+  await nodeCliUtils.spawnAsync(command, args, {}, true)
 }
 
 async function runClient() {
   const command = 'node'
   const args = ['./node_modules/vite/bin/vite.js', 'dev']
-  await spawnAsync(command, args, { cwd: clientPath }, true)
+  await nodeCliUtils.spawnAsync(command, args, { cwd: clientPath }, true)
 }
 
 async function doTestServer() {
-  await spawnAsync('dotnet', ['test'], { cwd: serverTestPath })
+  await nodeCliUtils.spawnAsync('dotnet', ['test'], { cwd: serverTestPath }, true)
 }
 
 async function doBuildClient() {
-  await spawnAsync('npm', ['run', 'build', '--omit=dev'], { cwd: clientPath })
+  await nodeCliUtils.spawnAsync('npm', ['run', 'build', '--omit=dev'], { cwd: clientPath })
 }
 
 async function doBuildServer() {
   log('emptying build directory')
-  await emptyDirectory(buildDir, ['wwwroot'])
+  await nodeCliUtils.emptyDirectory(buildDir, ['wwwroot'])
   log('building server')
-  await dotnetPublish(serverCsprojPath, 'Release', buildDir)
+  await nodeCliUtils.dotnetPublish(serverCsprojPath, 'Release', buildDir)
   log('removing .env from build directory')
   const envPath = path.join(buildDir, '.env')
-  await deleteEnvIfExists(envPath)
+  await nodeCliUtils.deleteEnvIfExists(envPath)
 }
 
 async function ensureReleaseDir() {
-  await ensureDirectory(releaseDir)
+  await nodeCliUtils.ensureDirectory(releaseDir)
 }
 
 async function doBuildDbMigrator() {
   const publishDir = path.join(dbMigratorPath, 'publish')
-  await dotnetPublish(dbMigratorPath, 'Release', publishDir)
+  await nodeCliUtils.dotnetPublish(dbMigratorPath, 'Release', publishDir)
   const envPath = path.join(publishDir, '.env')
-  await deleteEnvIfExists(envPath)
+  await nodeCliUtils.deleteEnvIfExists(envPath)
   return publishDir
 }
 
 async function doCreateDbMigratorRelease() {
   const publishDir = await doBuildDbMigrator()
-  await createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName))
+  await nodeCliUtils.createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName))
 }
 
 async function doCopyClientBuild() {
-  await copyDirectoryContents(path.join(clientPath, 'dist'), buildWwwrootDir)
+  await nodeCliUtils.copyDirectoryContents(path.join(clientPath, 'dist'), buildWwwrootDir)
 }
 
 async function createReleaseTarball() {
-  await createTarball(buildDir, path.join(releaseDir, releaseTarballName))
+  await nodeCliUtils.deleteEnvIfExists(path.join(buildDir, '.env'))
+  await nodeCliUtils.createTarball(buildDir, path.join(releaseDir, releaseTarballName))
 }
 
 async function doDockerCompose(upOrDown: 'up' | 'down', attached = false) {
-  await spawnDockerCompose(dockerComposePath, upOrDown, { attached })
+  await nodeCliUtils.spawnDockerCompose(dockerComposePath, upOrDown, { attached })
 }
 
 async function bashIntoPostgresContainer() {
-  await spawnDockerCompose(dockerComposePath, 'exec', { args: ['-it', 'postgresql', 'bash'], attached: true })
+  await nodeCliUtils.spawnDockerCompose(dockerComposePath, 'exec', { args: ['-it', 'postgresql', 'bash'], attached: true })
 }
 
 async function dbMigratorCliCommand(command: string) {
-  if (command === 'dbDropAll' && !await getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
+  if (command === 'dbDropAll' && !await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
     return
   }
   if (command === 'dbDropAndRecreate') {
-    if (!await getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
+    if (!await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
       return
     } else {
-      await spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbDropAll'])
-      await spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
+      await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbDropAll'])
+      await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
       return
     }
   }
@@ -212,7 +222,7 @@ async function dbMigratorCliCommand(command: string) {
 
 const dbContextOptions = ['main', 'test', 'both']
 
-const dbContexts: StringKeyedDictionary = {
+const dbContexts: nodeCliUtils.StringKeyedDictionary = {
   main: mainDbContextName,
   test: testDbContextName
 }
@@ -244,7 +254,7 @@ async function executeEfAction(action: 'list' | 'update' | 'add' | 'remove') {
 
   // Build once explicitly so that all commands can use the noBuild option.
   // This will speed up operations that require multiple 'dotnet ef' commands.
-  await dotnetBuild(dbMigratorPath)
+  await nodeCliUtils.dotnetBuild(dbMigratorPath)
 
   for (const key of Object.keys(dbContexts)) {
     if (dbContextArg === key || dbContextArg === 'both') {
@@ -302,7 +312,7 @@ async function doRunBuilt() {
   const certSourcePath = path.join('./cert/', devCertName)
   const certDestinationPath = path.join(buildDir, devCertName)
   await fsp.copyFile(certSourcePath, certDestinationPath)
-  await spawnAsync('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { cwd: './build/' }, true)
+  await nodeCliUtils.spawnAsync('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { cwd: './build/' }, true)
 }
 
 function getRequireAdditionalParam(errorWithExample: string) {

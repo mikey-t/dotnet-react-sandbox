@@ -565,9 +565,10 @@ export async function copyNewEnvValues(sourcePath: string, destinationPath: stri
  * 
  * @param sourcePath The path to the source .env file such as a root .env file (use {@link copyNewEnvValues} for .env.template files)
  * @param destinationPath The path to the destination .env file
+ * @param suppressAddKeysMessages If true, messages about adding missing keys will not be logged (useful if you're always calling {@link copyModifiedEnv} after this call)
  */
-export async function overwriteEnvFile(sourcePath: string, destinationPath: string) {
-  await copyEnv(sourcePath, destinationPath)
+export async function overwriteEnvFile(sourcePath: string, destinationPath: string, suppressAddKeysMessages = false) {
+  await copyEnv(sourcePath, destinationPath, true, suppressAddKeysMessages)
 }
 
 /**
@@ -599,11 +600,12 @@ export async function copyModifiedEnv(sourcePath: string, destinationPath: strin
   await fsp.writeFile(destinationPath, newEnvFileContent)
 }
 
-async function copyEnv(sourcePath: string, destinationPath: string, overrideAll = true) {
+async function copyEnv(sourcePath: string, destinationPath: string, overrideExistingDestinationValues = true, suppressAddKeysMessages = false) {
   requireValidPath('sourcePath', sourcePath)
 
   // If the destination .env file doesn't exist, just copy it and return
-  if (!fs.existsSync(sourcePath)) {
+  if (!fs.existsSync(destinationPath)) {
+    log(`creating ${destinationPath} from ${sourcePath}`)
     await fsp.copyFile(sourcePath, destinationPath)
     return
   }
@@ -617,12 +619,15 @@ async function copyEnv(sourcePath: string, destinationPath: string, overrideAll 
   const keysMissingInDestination = templateKeys.filter(envKey => !destinationKeysBeforeChanging.includes(envKey))
 
   if (keysMissingInDestination.length > 0) {
-    console.log(`Adding missing keys in ${destinationPath}: ${keysMissingInDestination.join(', ')}`)
+    if (!suppressAddKeysMessages) {
+      log(`adding missing keys in ${destinationPath}: ${keysMissingInDestination.join(', ')}`)
+    }
   }
 
-  // For instances where both .env files have the same key, use the value from the source if overrideAll is true, otherwise use the value from the destination
+  // For instances where both .env files have the same key, use the value from the source if
+  // overrideExistingDestinationValues param is true, otherwise leave the value from the destination intact.
   const newDict: StringKeyedDictionary = {}
-  for (const [key, value] of Object.entries(overrideAll ? sourceDict : destinationDict)) {
+  for (const [key, value] of Object.entries(overrideExistingDestinationValues ? sourceDict : destinationDict)) {
     newDict[key] = value
   }
 

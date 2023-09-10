@@ -20,17 +20,34 @@ export function trace(message?: unknown, ...optionalParams: unknown[]) {
 
 export type StringKeyedDictionary = { [name: string]: string }
 
+/**
+ * Options for the spawnAsync wrapper function for NodeJS spawn.
+ */
 export interface SpawnResult {
+  /**
+   * The exit code of the spawned process. Rather than allowing null, this will be set to 1 if the process exits with null, or 0 if user cancels with ctrl+c.
+   */
   code: number
+  /**
+   * The stdout of the spawned process. **Warning:** this will be empty by default without changing SpawnOptions stdio (see {@link spawnAsync}).
+   */
+  stdout: string
+  /**
+   * The stderr of the spawned process. **Warning:** this will be empty by default without changing SpawnOptions stdio (see {@link spawnAsync}).
+   */
+  stderr: string
+  /**
+   * Not an error from the child process stderr, but rather an error thrown when attempting to spawn the child process.
+   */
   error?: Error,
+  /**
+   * The current working directory of the spawned process. Not changed by method, so just repeating your SpawnOptions.cwd back to you, but helpful for debugging.
+   */
   cwd?: string
 }
 
-export interface SimpleSpawnResult {
-  status: number | null
-  stdout: string
-  stderr: string
-  error?: Error | undefined
+// I know it's weird that SimpleSpawnResult has more props then SpawnResult... didn't want to pollute spawnAsync anymore than it already has been.
+export interface SimpleSpawnResult extends SpawnResult {
   stdoutLines: string[]
 }
 
@@ -50,14 +67,30 @@ export async function sleep(ms: number): Promise<void> {
   })
 }
 
+/**
+ * This is a wrapper function for NodeJS spawn that provides some additional functionality:
+ * - If isLongRunning is true and the method is run on Windows, a workaround is used to prevent orphaned processes
+ * - Defaults stdio to inherit so that output is visible in the console, but note that this means stdout and stderr will not be available in the returned SpawnResult
+ * @param command The command to spawn
+ * @param args The arguments to pass to the command
+ * @param options The options to pass to the command
+ * @param isLongRunning This optional param being true in combination with the platform being windows will cause a workaround to prevent orphaned processes
+ * @returns A Promise that resolves to a {@link SpawnResult}
+ */
 export async function spawnAsync(command: string, args?: string[], options?: SpawnOptions, isLongRunning?: boolean): Promise<SpawnResult> {
   return new Promise((resolve, reject) => {
     try {
       const defaultSpawnOptions: SpawnOptions = { stdio: 'inherit' }
+      // const defaultSpawnOptions: SpawnOptions = { stdio: 'pipe' }
       const argsToUse = args ?? []
       const logPrefix = `[${command} ${argsToUse.join(' ')}] `
       const mergedOptions = { ...defaultSpawnOptions, ...options }
-      const result: SpawnResult = { code: 1, cwd: mergedOptions.cwd?.toString() ?? process.cwd() }
+      const result: SpawnResult = {
+        code: 1,
+        stdout: '',
+        stderr: '',
+        cwd: mergedOptions.cwd?.toString() ?? process.cwd()
+      }
 
       // Windows has a bug where child processes are orphaned when using the shell option. This workaround will spawn
       // a "middle" process using the shell option to check whether parent process is still running at intervals and if not, kill the child process tree.
@@ -80,6 +113,15 @@ export async function spawnAsync(command: string, args?: string[], options?: Spa
       if (childId === undefined) {
         throw new Error(`${logPrefix}ChildProcess pid is undefined - spawn failed`)
       }
+
+      child.stdout?.on('data', (data) => {
+        process.stdout.write(data)
+        result.stdout += data.toString()
+      })
+      child.stderr?.on('data', (data) => {
+        process.stdout.write(data)
+        result.stderr += data.toString()
+      })
 
       const listener = new SignalListener(child, logPrefix)
 
@@ -428,11 +470,12 @@ export function getSimpleSpawnResultSync(command: string, args?: string[]): Simp
   requireString('command', command)
   const result = spawnSync(command, args ?? [], { encoding: 'utf-8' })
   return {
-    status: result.status,
+    code: result.status ?? 1,
     stdout: result.stdout.toString(),
     stderr: result.stdout.toString(),
     stdoutLines: stringToNonEmptyLines(result.stdout.toString()),
-    error: result.error
+    error: result.error,
+    cwd: process.cwd()
   }
 }
 

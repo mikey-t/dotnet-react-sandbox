@@ -1,20 +1,22 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
-import { ensureDirectory, getSimpleSpawnResultSync, isPlatformLinux, isPlatformMac, isPlatformWindows, log, requireString, requireValidPath, spawnAsync, whichSync } from './moveToNodeCliGeneral.ts'
+import * as nodeCliUtils from './moveToNodeCliGeneral.ts'
+import { log } from './moveToNodeCliGeneral.ts'
 
 const requiresAdminMessage = `➡️ Important: Requires admin permissions`
+const powershellHackPrefix = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); `
 
 export async function generateCertWithOpenSsl(url: string, outputDirectory: string = './cert') {
-  requireString('url', url)
+  nodeCliUtils.requireString('url', url)
   throwIfMaybeBadUrlChars(url)
-  const isMac = isPlatformMac()
+  const isMac = nodeCliUtils.isPlatformMac()
   const spawnArgs = { cwd: outputDirectory }
 
   log('- checking if openssl is installed')
   let brewOpenSslPath: string = ''
-  if (isPlatformWindows() || isPlatformLinux()) {
-    const openSslPath = whichSync('openssl').location
+  if (!isMac) {
+    const openSslPath = nodeCliUtils.whichSync('openssl').location
     if (!openSslPath) {
       throw Error('openssl is required but was not found')
     }
@@ -32,7 +34,7 @@ export async function generateCertWithOpenSsl(url: string, outputDirectory: stri
     }
   }
 
-  ensureDirectory(outputDirectory)
+  nodeCliUtils.ensureDirectory(outputDirectory)
   const keyName = url + '.key'
   const crtName = url + '.crt'
   const pfxName = url + '.pfx'
@@ -49,29 +51,34 @@ export async function generateCertWithOpenSsl(url: string, outputDirectory: stri
   log(`- attempting to generate cert ${pfxName}`)
   const genKeyAndCrtArgs = `req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes -keyout ${keyName} -out ${crtName} -subj /CN=${url} -config san.cnf`.split(' ')
   const command = isMac ? brewOpenSslPath : 'openssl'
-  let result = await spawnAsync(command, genKeyAndCrtArgs, spawnArgs)
+  let result = await nodeCliUtils.spawnAsync(command, genKeyAndCrtArgs, spawnArgs)
   if (result.code !== 0) {
     throw Error(`openssl command to generate key and crt files failed with exit code ${result.code}`)
   }
 
   log('- converting key and crt to pfx')
   const convertToPfxArgs = `pkcs12 -certpbe AES-256-CBC -export -out ${pfxName} -aes256 -inkey ${keyName} -in ${crtName} -password pass:`.split(' ')
-  result = await spawnAsync(command, convertToPfxArgs, spawnArgs)
+  result = await nodeCliUtils.spawnAsync(command, convertToPfxArgs, spawnArgs)
   if (result.code !== 0) {
     throw Error(`openssl command to convert key and crt files to a pfx failed with exit code ${result.code}`)
   }
 }
 
 export async function winInstallCert(urlOrCertFilename: string, certDirectory = './cert') {
-  requireString('urlOrCertFilename', urlOrCertFilename)
-  requireValidPath('certDirectory', certDirectory)
+  nodeCliUtils.requireString('urlOrCertFilename', urlOrCertFilename)
+  nodeCliUtils.requireValidPath('certDirectory', certDirectory)
   throwIfMaybeBadUrlChars(urlOrCertFilename, 'urlOrCertFilename')
 
-  if (!isPlatformWindows()) {
+  if (!nodeCliUtils.isPlatformWindows()) {
     throw Error('This method is only supported on Windows')
   }
 
   log(requiresAdminMessage)
+
+  if (await winCertAlreadyInstalled(urlOrCertFilename)) {
+    log(`certificate for ${urlOrCertFilename} is already installed - to install it again, first uninstall it manually or with the winUninstallCert method`)
+    return
+  }
 
   const certName = urlOrCertFilename.endsWith('.pfx') ? urlOrCertFilename : urlOrCertFilename + '.pfx'
 
@@ -81,22 +88,22 @@ export async function winInstallCert(urlOrCertFilename: string, certDirectory = 
     throw Error(`File ${certPath} does not exist. Generate this first if you want to install it.`)
   }
 
-  const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Import-PfxCertificate -FilePath '${certPath}' -CertStoreLocation Cert:\\LocalMachine\\Root`
+  const psCommand = `${powershellHackPrefix}Import-PfxCertificate -FilePath '${certPath}' -CertStoreLocation Cert:\\LocalMachine\\Root`
 
-  const result = await spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand])
+  const result = await nodeCliUtils.spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand])
   if (result.code !== 0) {
     throw Error(`powershell command to install cert failed with exit code ${result.code}`)
   }
 }
 
 export async function winUninstallCert(urlOrSubject: string) {
-  requireString('urlOrSubject', urlOrSubject)
+  nodeCliUtils.requireString('urlOrSubject', urlOrSubject)
 
   log(requiresAdminMessage)
 
-  const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -match '${urlOrSubject}' } | Remove-Item`
+  const psCommand = `${powershellHackPrefix}Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -match '${urlOrSubject}' } | Remove-Item`
 
-  const result = await spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand])
+  const result = await nodeCliUtils.spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand])
 
   if (result.code !== 0) {
     throw Error(`powershell command to uninstall cert failed with exit code ${result.code}`)
@@ -115,6 +122,27 @@ Manual Instructions:
   console.log(instructions)
 }
 
+export async function winCertAlreadyInstalled(urlOrSubject: string): Promise<boolean> {
+  const psCommand = `${powershellHackPrefix}Get-ChildItem Cert:\\LocalMachine\\Root | Where-Object { $_.Subject -match '${urlOrSubject}' }`
+
+  // The stdio option of 'pipe' is important here - if left to default of spawnAsync ('inherit'), stdout will be empty
+  const result = await nodeCliUtils.spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand], { stdio: ['inherit', 'pipe', 'pipe'] })
+
+  if (result.code !== 0) {
+    throw Error(`powershell command to find installed cert failed with exit code ${result.code}`)
+  }
+
+  const lines = nodeCliUtils.stringToNonEmptyLines(result.stdout)
+
+  for (const line of lines) {
+    if (line.includes(urlOrSubject)) {
+      return true
+    }
+  }
+
+  return false
+}
+
 function throwIfMaybeBadUrlChars(url: string, varName = 'url') {
   if (url.includes(' ')) {
     throw Error(`${varName} should not contain spaces`)
@@ -128,7 +156,7 @@ function throwIfMaybeBadUrlChars(url: string, varName = 'url') {
 }
 
 function getBrewOpensslPath(): string {
-  const brewResult = getSimpleSpawnResultSync('brew', ['--prefix', 'openssl'])
+  const brewResult = nodeCliUtils.getSimpleSpawnResultSync('brew', ['--prefix', 'openssl'])
   if (brewResult.error) {
     throw Error('error attempting to find openssl installed by brew')
   }

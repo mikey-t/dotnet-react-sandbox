@@ -118,7 +118,7 @@ export async function winInstallCert() {
   const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winInstallCert local.acme.com')
   const certPath = path.join('./cert/', `${url}.pfx`)
   if (fs.existsSync(certPath)) {
-    log(`Cert already exists at path ${certPath}`)
+    log(`Using cert file at path ${certPath}`)
   } else {
     log(`Cert does not exist at path ${certPath}, generating...`)
     await certUtils.generateCertWithOpenSsl(url)
@@ -134,6 +134,11 @@ export async function winUninstallCert() {
 
 export async function linuxInstallCert() {
   certUtils.linuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
+}
+
+export async function temp() {
+  const hasCertInstalled = await certUtils.winCertAlreadyInstalled('local.drs.mikeyt.net')
+  log(`hasCertInstalled: ${hasCertInstalled}`)
 }
 
 // End exported functions //

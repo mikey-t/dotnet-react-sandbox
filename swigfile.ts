@@ -170,9 +170,6 @@ async function doBuildServer() {
   await nodeCliUtils.emptyDirectory(buildDir, ['wwwroot'])
   log('building server')
   await nodeCliUtils.dotnetPublish(serverCsprojPath, 'Release', buildDir)
-  log('removing .env from build directory')
-  const envPath = path.join(buildDir, '.env')
-  await nodeCliUtils.deleteEnvIfExists(envPath)
 }
 
 async function ensureReleaseDir() {
@@ -182,14 +179,13 @@ async function ensureReleaseDir() {
 async function doBuildDbMigrator() {
   const publishDir = path.join(dbMigratorPath, 'publish')
   await nodeCliUtils.dotnetPublish(dbMigratorPath, 'Release', publishDir)
-  const envPath = path.join(publishDir, '.env')
-  await nodeCliUtils.deleteEnvIfExists(envPath)
+  await nodeCliUtils.deleteEnvIfExists(path.join(publishDir, '.env'))
   return publishDir
 }
 
 async function doCreateDbMigratorRelease() {
   const publishDir = await doBuildDbMigrator()
-  await nodeCliUtils.createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName))
+  await nodeCliUtils.createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName), ['.env'])
 }
 
 async function doCopyClientBuild() {
@@ -197,8 +193,7 @@ async function doCopyClientBuild() {
 }
 
 async function createReleaseTarball() {
-  await nodeCliUtils.deleteEnvIfExists(path.join(buildDir, '.env'))
-  await nodeCliUtils.createTarball(buildDir, path.join(releaseDir, releaseTarballName))
+  await nodeCliUtils.createTarball(buildDir, path.join(releaseDir, releaseTarballName), ['.env'])
 }
 
 async function doDockerCompose(upOrDown: 'up' | 'down', attached = false) {

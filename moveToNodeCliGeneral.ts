@@ -114,10 +114,13 @@ export async function spawnAsync(command: string, args?: string[], options?: Spa
         throw new Error(`${logPrefix}ChildProcess pid is undefined - spawn failed`)
       }
 
+      // This will only happen when stdio is not set to 'inherit'
       child.stdout?.on('data', (data) => {
         process.stdout.write(data)
         result.stdout += data.toString()
       })
+
+      // This will only happen when stdio is not set to 'inherit'
       child.stderr?.on('data', (data) => {
         process.stdout.write(data)
         result.stderr += data.toString()
@@ -173,21 +176,27 @@ class SignalListener {
 
 /**
  * Ensure the directory exists. Similar to `mkdir -p` (creates parent directories if they don't exist).
- * 
  * @param dir The directory to ensure exists. If it does not exist, it will be created.
  */
 export async function ensureDirectory(dir: string) {
   requireString('dir', dir)
   if (!fs.existsSync(dir)) {
-    await fsp.mkdir(dir, { recursive: true })
+    await mkdirp(dir)
   }
+}
+
+/**
+ * Create a directory. Will create parent directory structure if it don't exist. Similar to `mkdir -p`.
+ * @param dir The directory to create. 
+ */
+export async function mkdirp(dir: string) {
+  await fsp.mkdir(dir, { recursive: true })
 }
 
 /**
  * Empties a directory of all files and subdirectories.
  * 
  * Optionally skips files and directories at the top level.
- * 
  * @param directoryToEmpty The directory to empty.
  * @param fileAndDirectoryNamesToSkip An optional array of file and directory names to skip, but only at the top level of the directoryToEmpty.
  */
@@ -196,7 +205,7 @@ export async function emptyDirectory(directoryToEmpty: string, fileAndDirectoryN
 
   if (!fs.existsSync(directoryToEmpty)) {
     trace(`directoryToEmpty does not exist - creating directory ${directoryToEmpty}`)
-    await fsp.mkdir(directoryToEmpty, { recursive: true })
+    await mkdirp(directoryToEmpty)
   }
 
   const dir = await fsp.opendir(directoryToEmpty, { encoding: 'utf-8' })
@@ -231,7 +240,6 @@ export async function emptyDirectory(directoryToEmpty: string, fileAndDirectoryN
  * Copies the contents of a directory to another directory (not including the top-level directory itself).
  * 
  * If the destination directory does not exist, it will be created.
- * 
  * @param sourceDirectory Directory to copy from
  * @param destinationDirectory Directory to copy to
  */
@@ -248,7 +256,7 @@ export async function copyDirectoryContents(sourceDirectory: string, destination
   }
 
   if (!fs.existsSync(destinationDirectory)) {
-    await fsp.mkdir(destinationDirectory, { recursive: true })
+    await mkdirp(destinationDirectory)
   }
 
   if (!fs.lstatSync(destinationDirectory).isDirectory()) {
@@ -280,7 +288,6 @@ export async function dotnetBuild(projectPath: string) {
 
 /**
  * Helper method to spawn a process and run 'dotnet publish'.
- * 
  * @param projectPath Path to project file (like .csproj) or directory of project to build
  * @param configuration Build configuration, such as 'Release'
  * @param outputDir The relative or absolute path for the build output
@@ -317,20 +324,16 @@ export function requireValidPath(paramName: string, paramValue: string) {
 
 /**
  * Creates a tarball from a directory.
- * 
- * @param directoryToTarball The directory to tarball. The directory name will be used as the root directory in the tarball.
- * @param tarballPath The path to the tarball to create. Must end with '.tar.gz'.
+ * @param directoryToTarball The directory to tarball. The directory name will be used as the root directory in the tarball
+ * @param tarballPath The path to the tarball to create. Must end with '.tar.gz'
+ * @param omitFiles An optional array of file names to omit from the tarball
  */
-export async function createTarball(directoryToTarball: string, tarballPath: string): Promise<void> {
-  requireString('directoryToTarball', directoryToTarball)
+export async function createTarball(directoryToTarball: string, tarballPath: string, omitFiles?: string[]): Promise<void> {
+  requireValidPath('directoryToTarball', directoryToTarball)
   requireString('tarballPath', tarballPath)
 
   if (tarballPath.endsWith('.tar.gz') === false) {
     throw new Error(`tarballPath must end with '.tar.gz': ${tarballPath}`)
-  }
-
-  if (!fs.existsSync(directoryToTarball)) {
-    throw new Error(`directoryToTarball does not exist: ${directoryToTarball}`)
   }
 
   const directoryToTarballParentDir = path.dirname(directoryToTarball)
@@ -341,13 +344,20 @@ export async function createTarball(directoryToTarball: string, tarballPath: str
 
   if (!fs.existsSync(outputDirectory)) {
     trace(`tarballPath directory does not exist - creating '${outputDirectory}'`)
-    await fsp.mkdir(outputDirectory, { recursive: true })
+    await mkdirp(outputDirectory)
   } else if (fs.existsSync(tarballPath)) {
     trace(`removing existing tarball '${tarballName}' before creating new one`)
     await fsp.unlink(tarballPath)
   }
 
-  const options: CreateOptions & FileOptions = { gzip: true, file: tarballPath, cwd: directoryToTarballParentDir }
+  const filesToOmit = omitFiles ?? []
+
+  const options: CreateOptions & FileOptions = {
+    gzip: true,
+    file: tarballPath,
+    cwd: directoryToTarballParentDir,
+    filter: (filePath: string) => !filesToOmit.includes(path.basename(filePath))
+  }
   const fileList: ReadonlyArray<string> = [directoryToTarballName]
   await (tar.create as (options: CreateOptions & FileOptions, fileList: ReadonlyArray<string>) => Promise<void>)(options, fileList)
 
@@ -356,7 +366,6 @@ export async function createTarball(directoryToTarball: string, tarballPath: str
 
 /**
  * Options for the spawnDockerCompose wrapper function for `docker compose`.
- * 
  * @param args        Additional arguments to pass to the docker-compose command
  * @param projectName Pass the same projectName for each commands for the same project to ensure your containers get unique, descriptive and consistent names.
  *                    Note that there are other better options such as using the environment variable `COMPOSE_PROJECT_NAME`. See https://docs.docker.com/compose/environment-variables/envvars/#compose_project_name.
@@ -372,7 +381,6 @@ export interface DockerComposeOptions {
 
 /**
  * For docker compose commands, see https://docs.docker.com/compose/reference/.
- * 
  * @param dockerComposePath Path to docker-compose.yml
  * @param dockerComposeCommand The docker-compose command to run
  * @param options {@link DockerComposeOptions} to use, including additional arguments to pass to the docker compose command and the project name
@@ -428,7 +436,6 @@ export async function spawnDockerCompose(dockerComposePath: string, dockerCompos
 
 /**
  * Splits a string into lines, removing empty lines and carriage return characters.
- * 
  * @param str String to split into lines
  * @returns An array of lines from the string, with empty lines removed
  */
@@ -443,7 +450,6 @@ export function stringToNonEmptyLines(str: string): string[] {
  * Use this for simple quick commands that don't require a lot of control.
  * 
  * For commands that aren't Windows and CMD specific, use {@link getSimpleSpawnResultSync}.
- * 
  * @param command Command to run
  * @param args Arguments to pass to the command
  * @returns An object with the status code, stdout, stderr, and error (if any)
@@ -461,7 +467,6 @@ export function getSimpleCmdResultSync(command: string, args?: string[]): Simple
  * Use this for simple quick commands that don't require a lot of control.
  * 
  * For commands that are Windows and CMD specific, use {@link getSimpleCmdResultSync}.
- * 
  * @param command Command to run
  * @param args Arguments to pass to the command
  * @returns An object with the status code, stdout, stderr, and error (if any)
@@ -586,7 +591,6 @@ export async function configureDotnetDevCerts() {
  * This is useful for copying values from a .env.template file to a root .env file.
  * 
  * For copying root .env files to other locations, use {@link overwriteEnvFile}.
- * 
  * @param sourcePath The path to the source .env file such as a `.env.template` file (use {@link overwriteEnvFile} for copying root .env files to other locations)
  * @param destinationPath The path to the destination .env file, such as the root .env file
  */
@@ -605,7 +609,6 @@ export async function copyNewEnvValues(sourcePath: string, destinationPath: stri
  * the destination .env file that you don't want to overwrite.
  * 
  * For copying .env.template files to root .env files, use {@link copyNewEnvValues}.
- * 
  * @param sourcePath The path to the source .env file such as a root .env file (use {@link copyNewEnvValues} for .env.template files)
  * @param destinationPath The path to the destination .env file
  * @param suppressAddKeysMessages If true, messages about adding missing keys will not be logged (useful if you're always calling {@link copyModifiedEnv} after this call)

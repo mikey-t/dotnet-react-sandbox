@@ -7,7 +7,6 @@ import fsp from 'node:fs/promises'
  * Wrapper function for `dotnet ef`. If you don't pass `false` for `noBuild`, be sure the project has already been built by some other means.
  * 
  * Docs for "dotnet ef" CLI: https://learn.microsoft.com/en-us/ef/core/cli/dotnet.
- * 
  * @param projectPath Path to project that has the DbContext and Migration files used for the `--project` argument
  * @param dbContextName The name of the DbContext class used for the `--context` argument
  * @param args Arguments to pass to the `dotnet ef` CLI

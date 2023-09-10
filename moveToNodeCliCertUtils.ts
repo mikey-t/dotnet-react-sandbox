@@ -73,7 +73,7 @@ export async function winInstallCert(urlOrCertFilename: string, certDirectory = 
 
   log(requiresAdminMessage)
 
-  let certName = urlOrCertFilename.endsWith('.pfx') ? urlOrCertFilename : urlOrCertFilename + '.pfx'
+  const certName = urlOrCertFilename.endsWith('.pfx') ? urlOrCertFilename : urlOrCertFilename + '.pfx'
 
   const certPath = path.join(certDirectory, certName)
 
@@ -83,7 +83,10 @@ export async function winInstallCert(urlOrCertFilename: string, certDirectory = 
 
   const psCommand = `$env:PSModulePath = [Environment]::GetEnvironmentVariable('PSModulePath', 'Machine'); Import-PfxCertificate -FilePath '${certPath}' -CertStoreLocation Cert:\\LocalMachine\\Root`
 
-  await spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand])
+  const result = await spawnAsync('powershell', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCommand])
+  if (result.code !== 0) {
+    throw Error(`powershell command to install cert failed with exit code ${result.code}`)
+  }
 }
 
 export async function winUninstallCert(urlOrSubject: string) {
@@ -139,6 +142,8 @@ function getSanCnfFileContents(url: string) {
   return sanCnfTemplate.replace(/{{url}}/g, url)
 }
 
+// Newer cert requirements force the need for "extension info" with DNS and IP info, but openssl v1.x doesn't support that with the
+// CLI option -addext, so we're using a san.cnf file instead and passing this into the CLI command with the -config option.
 const sanCnfTemplate = `[req]
 distinguished_name=req
 x509_extensions = v3_req

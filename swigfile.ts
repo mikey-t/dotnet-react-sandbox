@@ -6,7 +6,7 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { parallel, series } from 'swig-cli'
 import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './moveToNodeCliDbMigrator.ts'
-import { StringKeyedDictionary, configureDotnetDevCerts, copyDirectoryContents, createTarball, dotnetBuild, dotnetPublish, emptyDirectory, getConfirmation, installOrUpdateDotnetEfTool, log, spawnAsync, spawnDockerCompose } from './moveToNodeCliGeneral.ts'
+import { StringKeyedDictionary, configureDotnetDevCerts, copyDirectoryContents, copyModifiedEnv, createTarball, deleteEnvIfExists, dotnetBuild, dotnetPublish, emptyDirectory, ensureDirectory, getConfirmation, installOrUpdateDotnetEfTool, log, spawnAsync, spawnDockerCompose } from './moveToNodeCliGeneral.ts'
 import { winInstallCert as doWinInstallCert, winUninstallCert as doWinUninstallCert, generateCertWithOpenSsl, linuxInstallCert as doLinuxInstallCert } from './moveToNodeCliCertUtils.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
@@ -26,7 +26,7 @@ const preDeployHttpPort = '3001'
 const dbMigratorPath = 'server/src/DbMigrator/'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
-const directoriesWithEnv = [dockerPath, serverPath, clientPath, dbMigratorPath, buildDir]
+const directoriesWithEnv = [dockerPath, serverPath, serverTestPath, dbMigratorPath, clientPath, buildDir]
 
 export const server = series(syncEnvFiles, runServer)
 export const client = series(syncEnvFiles, runClient)
@@ -68,7 +68,7 @@ export async function deleteBuildAndRelease() {
   const dirs = ['./build', './release']
   for (const dir of dirs) {
     if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true })
+      await fsp.rm(dir, { recursive: true })
     }
   }
 }
@@ -76,23 +76,28 @@ export async function deleteBuildAndRelease() {
 export async function syncEnvFiles() {
   const rootEnvPath = './.env'
   if (process.argv[3] && process.argv[3] === 'clean') {
+    log(`syncEnvFiles called with 'clean' arg, deleting .env copies in ${directoriesWithEnv.join(', ')}`)
     await deleteEnvCopies()
   }
   await copyNewEnvValues(`${rootEnvPath}.template`, rootEnvPath)
-  await ensureBuildDir()
+  await ensureDirectory(buildWwwrootDir)
   for (const dir of directoriesWithEnv) {
     await overwriteEnvFile(rootEnvPath, path.join(dir, '.env'))
   }
-  await writeServerTestEnv()
+  await copyModifiedEnv(
+    rootEnvPath,
+    `${serverTestPath}/.env`,
+    ['DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'],
+    { 'DB_NAME': `test_${process.env.DB_NAME || 'DB_NAME_MISSING_FROM_PROCESS_ENV'}` }
+  )
 }
 
 export async function deleteEnvCopies() {
-  log('deleting existing .env copies before syncing')
   for (const dir of directoriesWithEnv) {
     const envPath = path.join(dir, '.env')
     if (fs.existsSync(envPath)) {
       log('deleting .env file at path', envPath)
-      await fsp.unlink(envPath)
+      await deleteEnvIfExists(envPath)
     }
   }
 }
@@ -126,42 +131,6 @@ export async function linuxInstallCert() {
 
 //*********************************************
 
-// Only keeping .env values in keepKeys below and modifying the DB_NAME value to be prefixed with "test_"
-async function writeServerTestEnv() {
-  const envPath = '.env'
-  const testEnvPath = `${serverTestPath}/.env`
-  const originalEnvString = await fsp.readFile(envPath, 'utf-8')
-
-  const keepKeys = ['DB_HOST', 'DB_PORT', 'DB_USER', 'DB_PASSWORD', 'DB_NAME']
-
-  let newTestEnvString = ''
-
-  for (const line of originalEnvString.split('\n')) {
-    if (!line || line.indexOf('=') === -1) {
-      continue
-    }
-
-    const key = line.substring(0, line.indexOf('='))
-
-    if (!keepKeys.includes(key)) {
-      continue
-    }
-
-    if (key === 'DB_NAME') {
-      const modifiedLine = line.replace('=', '=test_')
-      newTestEnvString += `${modifiedLine}\n`
-    } else {
-      newTestEnvString += `${line}\n`
-    }
-  }
-
-  await fsp.writeFile(testEnvPath, newTestEnvString)
-}
-
-async function ensureBuildDir() {
-  await fsp.mkdir(buildWwwrootDir, { recursive: true })
-}
-
 async function runServer() {
   const command = 'dotnet'
   const args = ['watch', '--project', serverCsprojPath]
@@ -189,22 +158,18 @@ async function doBuildServer() {
   await dotnetPublish(serverCsprojPath, 'Release', buildDir)
   log('removing .env from build directory')
   const envPath = path.join(buildDir, '.env')
-  if (fs.existsSync(envPath)) {
-    fs.unlinkSync(envPath)
-  }
+  await deleteEnvIfExists(envPath)
 }
 
 async function ensureReleaseDir() {
-  await fsp.mkdir(releaseDir, { recursive: true })
+  await ensureDirectory(releaseDir)
 }
 
 async function doBuildDbMigrator() {
   const publishDir = path.join(dbMigratorPath, 'publish')
   await dotnetPublish(dbMigratorPath, 'Release', publishDir)
   const envPath = path.join(publishDir, '.env')
-  if (fs.existsSync(envPath)) {
-    await fsp.rm(envPath)
-  }
+  await deleteEnvIfExists(envPath)
   return publishDir
 }
 

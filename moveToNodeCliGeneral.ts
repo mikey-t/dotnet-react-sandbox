@@ -535,3 +535,172 @@ export async function configureDotnetDevCerts() {
   await spawnAsync('dotnet', ['dev-certs', 'https', '--clean'])
   await spawnAsync('dotnet', ['dev-certs', 'https', '-t'])
 }
+
+/**
+ * Copy entries from a source .env file to a destination .env file for which the destination .env file does not already have entries.
+ * If the destination .env file does not exist, it will be created and populated with the source .env file's values.
+ * 
+ * This is useful for copying values from a .env.template file to a root .env file.
+ * 
+ * For copying root .env files to other locations, use {@link overwriteEnvFile}.
+ * 
+ * @param sourcePath The path to the source .env file such as a `.env.template` file (use {@link overwriteEnvFile} for copying root .env files to other locations)
+ * @param destinationPath The path to the destination .env file, such as the root .env file
+ */
+export async function copyNewEnvValues(sourcePath: string, destinationPath: string) {
+  await copyEnv(sourcePath, destinationPath, false)
+}
+
+/**
+ * Copy entries from a source .env file to a destination .env file, overwriting any existing entries in the destination .env file.
+ * If the destination .env file does not exist, it will be created and populated with the source .env file's values.
+ * 
+ * This is useful for copying values from a root .env file to additional locations (server, client, docker-compose directory, etc.)
+ * throughout your solution so you only have to manage one .env file.
+ * 
+ * Note that this does not delete any existing entries in the destination .env file, which is useful if you have additional entries in
+ * the destination .env file that you don't want to overwrite.
+ * 
+ * For copying .env.template files to root .env files, use {@link copyNewEnvValues}.
+ * 
+ * @param sourcePath The path to the source .env file such as a root .env file (use {@link copyNewEnvValues} for .env.template files)
+ * @param destinationPath The path to the destination .env file
+ */
+export async function overwriteEnvFile(sourcePath: string, destinationPath: string) {
+  await copyEnv(sourcePath, destinationPath)
+}
+
+/**
+ * Copy entries from a source .env file to a destination .env file, but only for the keys specified in keepKeys.
+ * Will also modify entries in the destination .env file as specified in modifyEntries.
+ * @param sourcePath The path to the source .env file
+ * @param destinationPath The path to the destination .env file
+ * @param keepKeys The keys to keep from the source .env file
+ * @param modifyEntries The entries to modify in the destination .env file
+ */
+export async function copyModifiedEnv(sourcePath: string, destinationPath: string, keepKeys: string[], modifyEntries?: StringKeyedDictionary) {
+  requireValidPath('sourcePath', sourcePath)
+  const destPathDir = path.dirname(destinationPath)
+  if (!fs.existsSync(destPathDir)) {
+    await ensureDirectory(destPathDir)
+  }
+
+  const sourceDict = getEnvAsDictionary(sourcePath)
+  const newDict: StringKeyedDictionary = filterDictionary(sourceDict, key => keepKeys.includes(key))
+
+  if (modifyEntries && Object.keys(modifyEntries).length > 0) {
+    for (const [key, value] of Object.entries(modifyEntries)) {
+      newDict[key] = value
+    }
+  }
+
+  const newSortedDict = sortDictionaryByKeyAsc(newDict)
+  const newEnvFileContent = dictionaryToEnvFileString(newSortedDict)
+  await fsp.writeFile(destinationPath, newEnvFileContent)
+}
+
+async function copyEnv(sourcePath: string, destinationPath: string, overrideAll = true) {
+  requireValidPath('sourcePath', sourcePath)
+
+  // If the destination .env file doesn't exist, just copy it and return
+  if (!fs.existsSync(sourcePath)) {
+    await fsp.copyFile(sourcePath, destinationPath)
+    return
+  }
+
+  const sourceDict = getEnvAsDictionary(sourcePath)
+  const destinationDict = getEnvAsDictionary(destinationPath)
+
+  // Determine what keys are missing from destinationPath .env that are in sourcePath .env or .env.template
+  const templateKeys = Object.keys(sourceDict)
+  const destinationKeysBeforeChanging = Object.keys(destinationDict)
+  const keysMissingInDestination = templateKeys.filter(envKey => !destinationKeysBeforeChanging.includes(envKey))
+
+  if (keysMissingInDestination.length > 0) {
+    console.log(`Adding missing keys in ${destinationPath}: ${keysMissingInDestination.join(', ')}`)
+  }
+
+  // For instances where both .env files have the same key, use the value from the source if overrideAll is true, otherwise use the value from the destination
+  const newDict: StringKeyedDictionary = {}
+  for (const [key, value] of Object.entries(overrideAll ? sourceDict : destinationDict)) {
+    newDict[key] = value
+  }
+
+  // Add entries that the destination doesn't have yet
+  for (const key of keysMissingInDestination) {
+    newDict[key] = sourceDict[key]
+  }
+
+  const newSortedDict: StringKeyedDictionary = sortDictionaryByKeyAsc(newDict)
+  const newEnvFileContent = dictionaryToEnvFileString(newSortedDict)
+  await fsp.writeFile(destinationPath, newEnvFileContent)
+}
+
+function getEnvAsDictionary(envPath: string): StringKeyedDictionary {
+  const dict: StringKeyedDictionary = {}
+  const lines = stringToNonEmptyLines(fs.readFileSync(envPath).toString())
+  for (const line of lines) {
+    if (line && line.indexOf('=') !== -1) {
+      const parts = line.split('=')
+      dict[parts[0].trim()] = parts[1].trim()
+    }
+  }
+  return dict
+}
+
+function dictionaryToEnvFileString(dict: StringKeyedDictionary): string {
+  return Object.entries(dict).map(kvp => `${kvp[0]}=${kvp[1]}`).join('\n') + '\n'
+}
+
+/**
+ * Filters a dictionary by key.
+ * @param dict The dictionary to filter
+ * @param predicate A function that returns true if the key should be included in the filtered dictionary
+ * @returns A new dictionary with only the keys that passed the predicate
+ */
+export function filterDictionary(dict: StringKeyedDictionary, predicate: (key: string) => boolean): StringKeyedDictionary {
+  // Notes to self:
+  // - The second param of reduce is the initial value of the accumulator
+  // - Reduce processes each element of the array and returns the accumulator for the next iteration
+  // - In our case, the accumulator is a new dictionary that we're building up
+  return Object.keys(dict)
+    .filter(predicate)
+    .reduce((accumulator, key) => {
+      accumulator[key] = dict[key]
+      return accumulator
+    }, {} as StringKeyedDictionary)
+}
+
+/**
+ * Sorts a dictionary by key in ascending order.
+ * @param dict The dictionary to sort
+ * @returns A new dictionary sorted by key in ascending order
+ */
+export function sortDictionaryByKeyAsc(dict: StringKeyedDictionary): StringKeyedDictionary {
+  const newSortedDict = Object.entries(dict).sort((a, b) => {
+    if (a < b) {
+      return -1
+    }
+    if (a > b) {
+      return 1
+    }
+    return 0
+  })
+
+  return Object.fromEntries(newSortedDict)
+}
+
+/**
+ * Helper method to delete a .env file if it exists.
+ * @param envPath The path to the .env file to delete
+ */
+export async function deleteEnvIfExists(envPath: string) {
+  // Just protecting ourselves from accidentally deleting something we didn't mean to
+  if (envPath.endsWith('.env') === false) {
+    throw new Error(`envPath must end with '.env': ${envPath}`)
+  }
+  // Using fsp.unlink will throw an error if it's a directory
+  if (fs.existsSync(envPath)) {
+    await fsp.unlink(envPath)
+  }
+}

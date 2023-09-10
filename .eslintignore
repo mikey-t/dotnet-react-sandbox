@@ -1,4 +1,2 @@
 *
-!swigfile.ts
-!swigHelpers.ts
-!swigDbMigratorHelpers.ts
+!*.ts

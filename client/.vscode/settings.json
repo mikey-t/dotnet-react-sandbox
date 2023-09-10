@@ -1,20 +1,28 @@
 {
-    "[javascript]": {
-        "editor.autoIndent": "full",
-        "editor.trimAutoWhitespace": false
-    },
-    "typescript.tsserver.experimental.enableProjectDiagnostics": true,
-    "cSpell.words": [
-        "signin"
-    ],
-    "cSpell.ignorePaths": [
-        "package-lock.json",
-        "node_modules",
-        ".git",
-        ".vscode",
-        "dist",
-        "src/pages/Blog.tsx",
-        "src/pages/Pricing.tsx",
-        "src/pages/Products.tsx"
-    ]
+  "[typescript]": {
+    "editor.autoIndent": "full",
+    "editor.trimAutoWhitespace": false
+  },
+  "[javascript]": {
+    "editor.autoIndent": "full",
+    "editor.trimAutoWhitespace": false
+  },
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+  "javascript.format.semicolons": "remove",
+  "typescript.format.semicolons": "remove",
+  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "cSpell.words": [
+    "signin"
+  ],
+  "cSpell.ignorePaths": [
+    "package-lock.json",
+    "node_modules",
+    ".git",
+    ".vscode",
+    "dist",
+    "src/pages/Blog.tsx",
+    "src/pages/Pricing.tsx",
+    "src/pages/Products.tsx"
+  ]
 }

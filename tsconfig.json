@@ -14,19 +14,16 @@
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true
   },
-  "include": [
-    "swigfile.ts",
-    "swigHelpers.ts",
-    "swigDbMigratorHelpers.ts"
-  ],
+  "include": ["*.ts"],
   "exclude": [
     ".vscode",
     "build",
     "cert",
+    "client",
     "docker",
     "docs",
     "node_modules",
     "release",
-    "src"
+    "server"
   ]
 }

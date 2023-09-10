@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { copyNewEnvValues, generateCertWithOpenSsl, linuxInstallCert as oldLinuxInstallCert, winInstallCert as oldWinInstallCert, winUninstallCert as oldWinUninstallCert, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
 import 'dotenv/config'
@@ -7,11 +5,10 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { parallel, series } from 'swig-cli'
-import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './swigDbMigratorHelpers.ts'
-import { StringKeyedDictionary, copyDirectoryContents, createTarball, isDockerRunning as doIsDockerRunning, dotnetBuild, dotnetPublish, emptyDirectory, getConfirmation, log, spawnAsync, spawnDockerCompose, whichSync } from './swigHelpers.ts'
+import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './moveToNodeCliDbMigrator.ts'
+import { StringKeyedDictionary, configureDotnetDevCerts, copyDirectoryContents, createTarball, dotnetBuild, dotnetPublish, emptyDirectory, getConfirmation, installOrUpdateDotnetEfTool, log, spawnAsync, spawnDockerCompose } from './moveToNodeCliGeneral.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
-
 const buildDir = './build'
 const releaseDir = './release'
 const buildWwwrootDir = `${buildDir}/wwwroot`
@@ -23,33 +20,68 @@ const releaseTarballName = `${projectName}.tar.gz`
 const dbMigratorTarballName = 'DbMigrator.tar.gz'
 const dockerPath = './docker'
 const dockerComposePath = `${dockerPath}/docker-compose.yml`
-const dockerProjectName = projectName
-const dockerDbContainerName = `${projectName}_postgres`
-const preDeployHttpPort = '3001'
 const preDeployHttpsPort = '3000'
-
+const preDeployHttpPort = '3001'
 const dbMigratorPath = 'server/src/DbMigrator/'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
-
 const directoriesWithEnv = [dockerPath, serverPath, clientPath, dbMigratorPath, buildDir]
+
+export const server = series(syncEnvFiles, runServer)
+export const client = series(syncEnvFiles, runClient)
+
+export const testServer = series(syncEnvFiles, doTestServer)
+
+export const buildClient = series(syncEnvFiles, doBuildClient)
+export const copyClientBuildOnly = doCopyClientBuild
+export const buildServer = series(syncEnvFiles, doBuildServer)
+export const createDbMigratorRelease = series(parallel(syncEnvFiles, ensureReleaseDir), doCreateDbMigratorRelease)
+export const buildAll = series(parallel(syncEnvFiles, ensureReleaseDir), parallel(doBuildClient, doBuildServer), doCopyClientBuild)
+
+export const runBuilt = series(syncEnvFiles, doRunBuilt)
+
+export const createRelease = parallel(series(buildAll, createReleaseTarball), doCreateDbMigratorRelease)
+export const createReleaseTarballOnly = createReleaseTarball
+
+export const dockerUp = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('up')])
+export const dockerUpAttached = series(syncEnvFiles, ['dockerDown', async () => doDockerCompose('down')], ['dockerUpAttached', async () => doDockerCompose('up', true)])
+export const dockerDown = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('down')])
+
+export const dbInitialCreate = series(syncEnvFiles, ['dbInitialCreate', async () => dbMigratorCliCommand('dbInitialCreate')])
+export const dbDropAll = series(syncEnvFiles, ['dbDropAll', async () => dbMigratorCliCommand('dbDropAll')])
+export const dbDropAndRecreate = series(syncEnvFiles, ['dbDropAndRecreate', async () => dbMigratorCliCommand('dbDropAndRecreate')])
+
+export const dbListMigrations = series(syncEnvFiles, doListMigrations)
+export const dbMigrate = series(syncEnvFiles, doDbMigrate)
+export const dbAddMigration = series(syncEnvFiles, doDbAddMigration)
+export const dbRemoveMigration = series(syncEnvFiles, doDbRemoveMigration)
+
+export const bashIntoDb = series(syncEnvFiles, bashIntoPostgresContainer)
+
+export {
+  installOrUpdateDotnetEfTool,
+  configureDotnetDevCerts
+}
+
+export async function deleteBuildAndRelease() {
+  const dirs = ['./build', './release']
+  for (const dir of dirs) {
+    if (fs.existsSync(dir)) {
+      fs.rmSync(dir, { recursive: true })
+    }
+  }
+}
 
 export async function syncEnvFiles() {
   const rootEnvPath = './.env'
-
   if (process.argv[3] && process.argv[3] === 'clean') {
     await deleteEnvCopies()
   }
-
-  // Copy root .env.[category].template to .env
-  await copyNewEnvValues(rootEnvPath + '.template', rootEnvPath)
-
+  await copyNewEnvValues(`${rootEnvPath}.template`, rootEnvPath)
   await ensureBuildDir()
-
   for (const dir of directoriesWithEnv) {
     await overwriteEnvFile(rootEnvPath, path.join(dir, '.env'))
   }
-
   await writeServerTestEnv()
 }
 
@@ -64,6 +96,37 @@ export async function deleteEnvCopies() {
   }
 }
 
+export async function generateCert() {
+  const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig generateCert local.acme.com')
+  await generateCertWithOpenSsl(url)
+}
+
+export async function winInstallCert() {
+  const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winInstallCert local.acme.com')
+  const certPath = path.join('./cert/', `${url}.pfx`)
+  if (fs.existsSync(certPath)) {
+    log(`Cert already exists at path ${certPath}`)
+  } else {
+    log(`Cert does not exist at path ${certPath}, generating...`)
+    await generateCertWithOpenSsl(url)
+  }
+  log(`attempting to install cert for url ${url}`)
+  await oldWinInstallCert(url)
+}
+
+export async function winUninstallCert() {
+  const certSubject = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winUninstallCert local.acme.com')
+  await oldWinUninstallCert(certSubject)
+}
+
+// This doesn't actually install anything - it just dumps out instructions for how to do it manually...
+export async function linuxInstallCert() {
+  oldLinuxInstallCert()
+}
+
+//*********************************************
+
+// Only keeping .env values in keepKeys below and modifying the DB_NAME value to be prefixed with "test_"
 async function writeServerTestEnv() {
   const envPath = '.env'
   const testEnvPath = `${serverTestPath}/.env`
@@ -158,27 +221,12 @@ async function createReleaseTarball() {
   await createTarball(buildDir, path.join(releaseDir, releaseTarballName))
 }
 
-async function doWhich() {
-  const command = process.argv[3]
-  log('doing which for command', command)
-  const result = whichSync(command)
-  log('which result', result)
-}
-
 async function doDockerCompose(upOrDown: 'up' | 'down', attached = false) {
   await spawnDockerCompose(dockerComposePath, upOrDown, { attached })
 }
 
 async function bashIntoPostgresContainer() {
   await spawnDockerCompose(dockerComposePath, 'exec', { args: ['-it', 'postgresql', 'bash'], attached: true })
-}
-
-async function getConfirmationExample() {
-  if (await getConfirmation('Do you even?')) {
-    log('you do even')
-  } else {
-    log('you do not even')
-  }
 }
 
 async function dbMigratorCliCommand(command: string) {
@@ -292,103 +340,10 @@ async function doRunBuilt() {
   await spawnAsync('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { cwd: './build/' }, true)
 }
 
-export async function installOrUpdateDotnetEfTool() {
-  const installed = whichSync('dotnet-ef').location
-  if (installed) {
-    log('dotnet-ef tool already installed, updating...')
-  } else {
-    log('dotnet-ef tool not installed, installing...')
-  }
-  const args = ['tool', installed ? 'update' : 'install', '--global', 'dotnet-ef']
-  await spawnAsync('dotnet', args)
-}
-
-export async function configureDotnetDevCerts() {
-  await spawnAsync('dotnet', ['dev-certs', 'https', '--clean'])
-  await spawnAsync('dotnet', ['dev-certs', 'https', '-t'])
-}
-
 function getRequireAdditionalParam(errorWithExample: string) {
   const additionalParam = process.argv[3]
   if (!additionalParam) {
     throw new Error(errorWithExample)
   }
   return additionalParam
-}
-
-export async function generateCert() {
-  const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig generateCert local.acme.com')
-  await generateCertWithOpenSsl(url)
-}
-
-export async function winInstallCert() {
-  const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winInstallCert local.acme.com')
-  const certPath = path.join('./cert/', `${url}.pfx`)
-  if (fs.existsSync(certPath)) {
-    log(`Cert already exists at path ${certPath}`)
-  } else {
-    log(`Cert does not exist at path ${certPath}, generating...`)
-    await generateCertWithOpenSsl(url)
-  }
-  log(`attempting to install cert for url ${url}`)
-  await oldWinInstallCert(url)
-}
-
-export async function winUninstallCert() {
-  const certSubject = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winUninstallCert local.acme.com')
-  await oldWinUninstallCert(certSubject)
-}
-
-// This doesn't actually install anything - it just dumps out instructions for how to do it manually...
-export async function linuxInstallCert() {
-  oldLinuxInstallCert()
-}
-
-//*********************************************
-
-export const server = series(syncEnvFiles, runServer)
-export const client = series(syncEnvFiles, runClient)
-
-export const testServer = series(syncEnvFiles, doTestServer)
-
-export const buildClient = series(syncEnvFiles, doBuildClient)
-export const copyClientBuildOnly = doCopyClientBuild
-export const buildServer = series(syncEnvFiles, doBuildServer)
-export const createDbMigratorRelease = series(parallel(syncEnvFiles, ensureReleaseDir), doCreateDbMigratorRelease)
-export const buildAll = series(parallel(syncEnvFiles, ensureReleaseDir), parallel(doBuildClient, doBuildServer), doCopyClientBuild)
-
-export const runBuilt = series(syncEnvFiles, doRunBuilt)
-
-export const createRelease = parallel(series(buildAll, createReleaseTarball), doCreateDbMigratorRelease)
-export const createReleaseTarballOnly = createReleaseTarball
-
-export const dockerUp = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('up')])
-export const dockerUpAttached = series(syncEnvFiles, ['dockerDown', async () => doDockerCompose('down')], ['dockerUpAttached', async () => doDockerCompose('up', true)])
-export const dockerDown = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('down')])
-
-export const dbInitialCreate = series(syncEnvFiles, ['dbInitialCreate', async () => dbMigratorCliCommand('dbInitialCreate')])
-export const dbDropAll = series(syncEnvFiles, ['dbDropAll', async () => dbMigratorCliCommand('dbDropAll')])
-export const dbDropAndRecreate = series(syncEnvFiles, ['dbDropAndRecreate', async () => dbMigratorCliCommand('dbDropAndRecreate')])
-
-export const dbListMigrations = series(syncEnvFiles, doListMigrations)
-export const dbMigrate = series(syncEnvFiles, doDbMigrate)
-export const dbAddMigration = series(syncEnvFiles, doDbAddMigration)
-export const dbRemoveMigration = series(syncEnvFiles, doDbRemoveMigration)
-
-export const bashIntoDb = series(syncEnvFiles, bashIntoPostgresContainer)
-
-export const ask = getConfirmationExample
-export const which = doWhich
-export const isDockerRunning = async () => log(`docker is running: ${await doIsDockerRunning()}`)
-
-export async function deleteBuildAndRelease() {
-  const dirs = [
-    './build',
-    './release'
-  ]
-  for (const dir of dirs) {
-    if (fs.existsSync(dir)) {
-      fs.rmSync(dir, { recursive: true })
-    }
-  }
 }

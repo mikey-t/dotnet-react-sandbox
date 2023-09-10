@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { copyNewEnvValues, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
-import { series, parallel } from 'swig-cli'
-import path from 'node:path'
-import fsp from 'node:fs/promises'
-import fs from 'node:fs'
-import { copyDirectoryContents, createTarball, dotnetPublish, emptyDirectory, isDockerRunning as doIsDockerRunning, log, spawnDockerCompose, DockerComposeCommand, askQuestion, getConfirmation, StringKeyedDictionary, dotnetBuild } from './swigHelpers.ts'
-import { spawnAsync, whichSync } from './swigHelpers.ts'
-import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './swigDbMigratorHelpers.ts'
+import { copyNewEnvValues, generateCertWithOpenSsl, linuxInstallCert as oldLinuxInstallCert, winInstallCert as oldWinInstallCert, winUninstallCert as oldWinUninstallCert, overwriteEnvFile } from '@mikeyt23/node-cli-utils'
 import 'dotenv/config'
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
+import path from 'node:path'
+import { parallel, series } from 'swig-cli'
+import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './swigDbMigratorHelpers.ts'
+import { StringKeyedDictionary, copyDirectoryContents, createTarball, isDockerRunning as doIsDockerRunning, dotnetBuild, dotnetPublish, emptyDirectory, getConfirmation, log, spawnAsync, spawnDockerCompose, whichSync } from './swigHelpers.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first syncEnvFile task runs
 
@@ -304,6 +303,49 @@ export async function installOrUpdateDotnetEfTool() {
   await spawnAsync('dotnet', args)
 }
 
+export async function configureDotnetDevCerts() {
+  await spawnAsync('dotnet', ['dev-certs', 'https', '--clean'])
+  await spawnAsync('dotnet', ['dev-certs', 'https', '-t'])
+}
+
+function getRequireAdditionalParam(errorWithExample: string) {
+  const additionalParam = process.argv[3]
+  if (!additionalParam) {
+    throw new Error(errorWithExample)
+  }
+  return additionalParam
+}
+
+export async function generateCert() {
+  const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig generateCert local.acme.com')
+  await generateCertWithOpenSsl(url)
+}
+
+export async function winInstallCert() {
+  const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winInstallCert local.acme.com')
+  const certPath = path.join('./cert/', `${url}.pfx`)
+  if (fs.existsSync(certPath)) {
+    log(`Cert already exists at path ${certPath}`)
+  } else {
+    log(`Cert does not exist at path ${certPath}, generating...`)
+    await generateCertWithOpenSsl(url)
+  }
+  log(`attempting to install cert for url ${url}`)
+  await oldWinInstallCert(url)
+}
+
+export async function winUninstallCert() {
+  const certSubject = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winUninstallCert local.acme.com')
+  await oldWinUninstallCert(certSubject)
+}
+
+// This doesn't actually install anything - it just dumps out instructions for how to do it manually...
+export async function linuxInstallCert() {
+  oldLinuxInstallCert()
+}
+
+//*********************************************
+
 export const server = series(syncEnvFiles, runServer)
 export const client = series(syncEnvFiles, runClient)
 
@@ -332,11 +374,6 @@ export const dbListMigrations = series(syncEnvFiles, doListMigrations)
 export const dbMigrate = series(syncEnvFiles, doDbMigrate)
 export const dbAddMigration = series(syncEnvFiles, doDbAddMigration)
 export const dbRemoveMigration = series(syncEnvFiles, doDbRemoveMigration)
-
-export const generateCert = series(syncEnvFiles)
-export const winInstallCert = series(syncEnvFiles)
-export const winUninstallCert = series(syncEnvFiles)
-export const linuxInstallCert = series(syncEnvFiles)
 
 export const bashIntoDb = series(syncEnvFiles, bashIntoPostgresContainer)
 

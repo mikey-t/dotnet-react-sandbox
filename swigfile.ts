@@ -145,11 +145,11 @@ export async function testEmptyDir() {
   await nodeCliUtils.ensureDirectory('./emptyTest')
   await fsp.writeFile('./emptyTest/test.txt', 'test')
   await fsp.writeFile('./emptyTest/tes2.txt', 'test2')
-  
+
   await nodeCliUtils.ensureDirectory('../emptyTest')
   await fsp.writeFile('../emptyTest/test.txt', 'test')
   await fsp.writeFile('../emptyTest/test2.txt', 'test2')
-  
+
   await nodeCliUtils.emptyDirectory('./emptyTest')
   // await nodeCliUtils.emptyDirectory('../emptyTest')
 }
@@ -218,6 +218,10 @@ async function bashIntoPostgresContainer() {
 }
 
 async function dbMigratorCliCommand(command: string) {
+  if (command === 'dbInitialCreate') {
+    await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
+    return
+  }
   if (command === 'dbDropAll' && !await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
     return
   }

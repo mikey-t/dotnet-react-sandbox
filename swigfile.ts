@@ -7,6 +7,9 @@ import * as certUtils from './moveToNodeCliCertUtils.ts'
 import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './moveToNodeCliDbMigrator.ts'
 import * as nodeCliUtils from './moveToNodeCliGeneral.ts'
 import { log } from './moveToNodeCliGeneral.ts'
+import { config as nodeCliUtilsConfig } from './NodeCliUtilsConfig.ts'
+
+nodeCliUtilsConfig.traceEnabled = true
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 
@@ -134,11 +137,6 @@ export async function winUninstallCert() {
 
 export async function linuxInstallCert() {
   certUtils.linuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
-}
-
-export async function temp() {
-  const hasCertInstalled = await certUtils.winCertAlreadyInstalled('local.drs.mikeyt.net')
-  log(`hasCertInstalled: ${hasCertInstalled}`)
 }
 
 // End exported functions //

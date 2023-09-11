@@ -5,16 +5,16 @@ import path from 'node:path'
 import tar, { CreateOptions, FileOptions } from 'tar'
 import { platform } from 'node:os'
 import * as readline from 'readline'
-
-const TRACE_ENABLED = true
+import { config } from './NodeCliUtilsConfig.ts'
 
 export function log(message?: unknown, ...optionalParams: unknown[]) {
   console.log(message, ...optionalParams)
 }
 
 export function trace(message?: unknown, ...optionalParams: unknown[]) {
-  if (TRACE_ENABLED) {
-    console.log(message, ...optionalParams)
+  if (config.traceEnabled) {
+    const prefix = `[TRACE]`
+    console.log(prefix, message, ...optionalParams)
   }
 }
 

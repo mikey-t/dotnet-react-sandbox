@@ -9,7 +9,7 @@ import * as nodeCliUtils from './moveToNodeCliGeneral.ts'
 import { log } from './moveToNodeCliGeneral.ts'
 import { config as nodeCliUtilsConfig } from './NodeCliUtilsConfig.ts'
 
-nodeCliUtilsConfig.traceEnabled = true
+nodeCliUtilsConfig.traceEnabled = false
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 
@@ -137,6 +137,21 @@ export async function winUninstallCert() {
 
 export async function linuxInstallCert() {
   certUtils.linuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
+}
+
+export async function testEmptyDir() {
+  // Create a dir call 'emptyTest' in the root of the project and run this task to test it.
+  // It should be empty after running this task.
+  await nodeCliUtils.ensureDirectory('./emptyTest')
+  await fsp.writeFile('./emptyTest/test.txt', 'test')
+  await fsp.writeFile('./emptyTest/tes2.txt', 'test2')
+  
+  await nodeCliUtils.ensureDirectory('../emptyTest')
+  await fsp.writeFile('../emptyTest/test.txt', 'test')
+  await fsp.writeFile('../emptyTest/test2.txt', 'test2')
+  
+  await nodeCliUtils.emptyDirectory('./emptyTest')
+  // await nodeCliUtils.emptyDirectory('../emptyTest')
 }
 
 // End exported functions //

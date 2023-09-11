@@ -206,6 +206,23 @@ export async function emptyDirectory(directoryToEmpty: string, fileAndDirectoryN
   if (!fs.existsSync(directoryToEmpty)) {
     trace(`directoryToEmpty does not exist - creating directory ${directoryToEmpty}`)
     await mkdirp(directoryToEmpty)
+    return
+  }
+
+  if (!fs.lstatSync(directoryToEmpty).isDirectory()) {
+    throw new Error(`directoryToEmpty is not a directory: ${directoryToEmpty}`)
+  }
+
+  // Add some guardrails to prevent accidentally emptying the wrong directory
+  const absolutePath = path.resolve(directoryToEmpty)
+  log(`emptying directory: ${absolutePath}`)
+  log(`current working directory: ${process.cwd()}`)
+  if (!absolutePath.startsWith(process.cwd())) {
+    throw new Error(`directoryToEmpty must be a child of the current working directory: ${directoryToEmpty}`)
+  }
+
+  if (absolutePath === process.cwd()) {
+    throw new Error(`directoryToEmpty cannot be the current working directory: ${directoryToEmpty}`)
   }
 
   const dir = await fsp.opendir(directoryToEmpty, { encoding: 'utf-8' })

@@ -3,13 +3,15 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { parallel, series } from 'swig-cli'
-import * as certUtils from './moveToNodeCliCertUtils.ts'
-import { efAddMigration, efMigrationsList, efMigrationsUpdate, efRemoveLastMigration } from './moveToNodeCliDbMigrator.ts'
-import * as nodeCliUtils from './moveToNodeCliGeneral.ts'
-import { log } from './moveToNodeCliGeneral.ts'
-import { config as nodeCliUtilsConfig } from './NodeCliUtilsConfig.ts'
+import * as nodeCliUtils from '@mikeyt23/node-cli-utils'
+import * as certUtils from '@mikeyt23/node-cli-utils/certUtils'
+import * as dbMigrationUtils from '@mikeyt23/node-cli-utils/dbMigrationUtils'
+import * as dotnetUtils from '@mikeyt23/node-cli-utils/dotnetUtils'
+import { log } from '@mikeyt23/node-cli-utils'
 
-nodeCliUtilsConfig.traceEnabled = false
+// nodeCliUtils.config.traceEnabled = true
+// nodeCliUtils.config.orphanProtectionLoggingEnabled = true
+// nodeCliUtils.config.orphanProtectionPollingIntervalMillis = 3000
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 
@@ -63,8 +65,8 @@ export const dbRemoveMigration = series(syncEnvFiles, doDbRemoveMigration)
 
 export const bashIntoDb = series(syncEnvFiles, bashIntoPostgresContainer)
 
-export const installOrUpdateDotnetEfTool = nodeCliUtils.installOrUpdateDotnetEfTool
-export const configureDotnetDevCerts = nodeCliUtils.configureDotnetDevCerts
+export const installOrUpdateDotnetEfTool = dotnetUtils.installOrUpdateDotnetEfTool
+export const configureDotnetDevCerts = dotnetUtils.configureDotnetDevCerts
 
 export async function deleteBuildAndRelease() {
   const dirs = ['./build', './release']
@@ -161,17 +163,17 @@ export async function testEmptyDir() {
 async function runServer() {
   const command = 'dotnet'
   const args = ['watch', '--project', serverCsprojPath]
-  await nodeCliUtils.spawnAsync(command, args, {}, true)
+  await nodeCliUtils.spawnAsyncLongRunning(command, args)
 }
 
 async function runClient() {
   const command = 'node'
   const args = ['./node_modules/vite/bin/vite.js', 'dev']
-  await nodeCliUtils.spawnAsync(command, args, { cwd: clientPath }, true)
+  await nodeCliUtils.spawnAsyncLongRunning(command, args, clientPath)
 }
 
 async function doTestServer() {
-  await nodeCliUtils.spawnAsync('dotnet', ['test'], { cwd: serverTestPath }, true)
+  await nodeCliUtils.spawnAsyncLongRunning('dotnet', ['test'], serverTestPath)
 }
 
 async function doBuildClient() {
@@ -182,7 +184,7 @@ async function doBuildServer() {
   log('emptying build directory')
   await nodeCliUtils.emptyDirectory(buildDir, ['wwwroot'])
   log('building server')
-  await nodeCliUtils.dotnetPublish(serverCsprojPath, 'Release', buildDir)
+  await dotnetUtils.dotnetPublish(serverCsprojPath, 'Release', buildDir)
 }
 
 async function ensureReleaseDir() {
@@ -191,7 +193,7 @@ async function ensureReleaseDir() {
 
 async function doBuildDbMigrator() {
   const publishDir = path.join(dbMigratorPath, 'publish')
-  await nodeCliUtils.dotnetPublish(dbMigratorPath, 'Release', publishDir)
+  await dotnetUtils.dotnetPublish(dbMigratorPath, 'Release', publishDir)
   await nodeCliUtils.deleteEnvIfExists(path.join(publishDir, '.env'))
   return publishDir
 }
@@ -271,26 +273,26 @@ async function executeEfAction(action: 'list' | 'update' | 'add' | 'remove') {
 
   // Build once explicitly so that all commands can use the noBuild option.
   // This will speed up operations that require multiple 'dotnet ef' commands.
-  await nodeCliUtils.dotnetBuild(dbMigratorPath)
+  await dotnetUtils.dotnetBuild(dbMigratorPath)
 
   for (const key of Object.keys(dbContexts)) {
     if (dbContextArg === key || dbContextArg === 'both') {
       const dbContextName = dbContexts[key]
       switch (action) {
         case 'list':
-          await efMigrationsList(dbMigratorPath, dbContextName)
+          await dbMigrationUtils.efMigrationsList(dbMigratorPath, dbContextName)
           break
         case 'update':
           log(migrationName ? `Updating ➡️${dbContextName} to migration name: ${migrationName}` : `Updating ➡️${dbContextName} to latest migration`)
-          await efMigrationsUpdate(dbMigratorPath, dbContextName, migrationName)
+          await dbMigrationUtils.efMigrationsUpdate(dbMigratorPath, dbContextName, migrationName)
           break
         case 'add':
           log(`Adding migration ➡️${migrationName} to ➡️${dbContextName}`)
-          await efAddMigration(dbMigratorPath, dbContextName, migrationName!, true)
+          await dbMigrationUtils.efAddMigration(dbMigratorPath, dbContextName, migrationName!, true)
           break
         case 'remove':
           log(`Removing last migration from ➡️${dbContextName}`)
-          await efRemoveLastMigration(dbMigratorPath, dbContextName)
+          await dbMigrationUtils.efRemoveLastMigration(dbMigratorPath, dbContextName)
           break
       }
     }
@@ -329,7 +331,7 @@ async function doRunBuilt() {
   const certSourcePath = path.join('./cert/', devCertName)
   const certDestinationPath = path.join(buildDir, devCertName)
   await fsp.copyFile(certSourcePath, certDestinationPath)
-  await nodeCliUtils.spawnAsync('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], { cwd: './build/' }, true)
+  await nodeCliUtils.spawnAsyncLongRunning('dotnet', ['WebServer.dll', '--launch-profile', '"PreDeploy"'], './build/')
 }
 
 function getRequireAdditionalParam(errorWithExample: string) {

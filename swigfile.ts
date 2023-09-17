@@ -200,7 +200,7 @@ async function doBuildDbMigrator() {
 
 async function doCreateDbMigratorRelease() {
   const publishDir = await doBuildDbMigrator()
-  await nodeCliUtils.createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName), ['.env'])
+  await nodeCliUtils.createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName), { excludes: ['.env'] })
 }
 
 async function doCopyClientBuild() {
@@ -208,7 +208,7 @@ async function doCopyClientBuild() {
 }
 
 async function createReleaseTarball() {
-  await nodeCliUtils.createTarball(buildDir, path.join(releaseDir, releaseTarballName), ['.env'])
+  await nodeCliUtils.createTarball(buildDir, path.join(releaseDir, releaseTarballName), { excludes: ['.env'] })
 }
 
 async function doDockerCompose(upOrDown: 'up' | 'down', attached = false) {

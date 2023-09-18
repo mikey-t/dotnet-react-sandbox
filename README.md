@@ -235,7 +235,7 @@ Social login documentation: [Social Logins documentation](./docs/SocialLogins.md
 
 ## Local Postgres Upgrade Process
 
-For teams using the same project you'd want extra steps like checking out latest, manually downgrading the docker-compose postgresl version back to what it was so that dockerUp will work, then follow the instructions below.
+For teams using the same project you'd want extra steps like checking out latest, manually downgrading the docker-compose postgres version back to what it was so that dockerUp will work, then follow the instructions below.
 
 - navigate to project in shell
 - `npm run dockerUp`

@@ -8,19 +8,22 @@
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "allowSyntheticDefaultImports": true
+    "types": [
+      "node"
+    ],
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true
   },
-  "include": [
-    "swigfile.ts"
-  ],
+  "include": ["swigfile.ts"],
   "exclude": [
     ".vscode",
     "build",
     "cert",
+    "client",
     "docker",
     "docs",
     "node_modules",
     "release",
-    "src"
+    "server"
   ]
 }

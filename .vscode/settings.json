@@ -1,8 +1,14 @@
 {
-  "dotnet.defaultSolution": "dotnet-react-sandbox.sln",
+  "[typescript]": {
+    "editor.autoIndent": "full",
+    "editor.trimAutoWhitespace": false
+  },
   "[javascript]": {
     "editor.autoIndent": "full",
     "editor.trimAutoWhitespace": false
   },
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true
+  "javascript.preferences.quoteStyle": "single",
+  "typescript.preferences.quoteStyle": "single",
+  "javascript.format.semicolons": "remove",
+  "typescript.format.semicolons": "remove"
 }

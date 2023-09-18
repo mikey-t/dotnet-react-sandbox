@@ -9,10 +9,6 @@ import * as dbMigrationUtils from '@mikeyt23/node-cli-utils/dbMigrationUtils'
 import * as dotnetUtils from '@mikeyt23/node-cli-utils/dotnetUtils'
 import { log } from '@mikeyt23/node-cli-utils'
 
-// nodeCliUtils.config.traceEnabled = true
-// nodeCliUtils.config.orphanProtectionLoggingEnabled = true
-// nodeCliUtils.config.orphanProtectionPollingIntervalMillis = 3000
-
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 
 const buildDir = './build'
@@ -139,21 +135,6 @@ export async function winUninstallCert() {
 
 export async function linuxInstallCert() {
   certUtils.linuxInstallCert() // This doesn't actually install anything - it just dumps out instructions for how to do it manually...
-}
-
-export async function testEmptyDir() {
-  // Create a dir call 'emptyTest' in the root of the project and run this task to test it.
-  // It should be empty after running this task.
-  await nodeCliUtils.ensureDirectory('./emptyTest')
-  await fsp.writeFile('./emptyTest/test.txt', 'test')
-  await fsp.writeFile('./emptyTest/tes2.txt', 'test2')
-
-  await nodeCliUtils.ensureDirectory('../emptyTest')
-  await fsp.writeFile('../emptyTest/test.txt', 'test')
-  await fsp.writeFile('../emptyTest/test2.txt', 'test2')
-
-  await nodeCliUtils.emptyDirectory('./emptyTest')
-  // await nodeCliUtils.emptyDirectory('../emptyTest')
 }
 
 // End exported functions //

@@ -265,12 +265,12 @@ To update the copyright text at the bottom of rendered web pages, update `.clien
 
 ### Project Name
 
-The project name doesn't do much right now, but if you decide you want to change your project name, these would be the steps:
+The project name is currently only being used to name the release tarball (i.e. `your-project-name.tar.gz`) and as the name of the dotnet `.sln` file. You can change the project name by following these steps:
 
 - Change your root directory name
 - Change value in your `.env` file for key: `PROJECT_NAME`
-- Change your .net solution file name: `./server/your-project-name.sln`
-  - Also change the name within the contents of the .net solution file - replace "dotnet-react-sandbox.sln" (it might be something slightly different) with "your-project-name.sln"
+- Change your dotnet solution file name: `./server/your-project-name.sln`
+  - Also change the name within the contents of the dotnet solution file - replace "`dotnet-react-sandbox.sln`" (it might be different if you used the project generator script or have renamed it already) with "`your-project-name.sln`"
 
 ### Docker Container Prefixes
 

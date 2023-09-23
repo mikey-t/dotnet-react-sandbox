@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import dotenv from 'dotenv'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
@@ -11,6 +11,8 @@ import { log } from '@mikeyt23/node-cli-utils'
 import SandboxDependencyChecker from './SandboxDependencyChecker.ts'
 import ProjectSetupUtil from './ProjectSetupUtil.ts'
 import { StringBoolArray } from './DependencyChecker.ts'
+
+dotenv.config()
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 
@@ -49,7 +51,6 @@ export const setup = series(
   ['dbMigrate', async () => conditionally(async () => executeEfAction('update', 'both'), !noDb)]
 )
 
-// todo: cert, hosts, db
 export const setupStatus = series(
   syncEnvFiles,
   populateSetupGlobals,
@@ -122,7 +123,12 @@ export async function syncEnvFiles() {
     log(`syncEnvFiles called with 'clean' arg - deleting .env copies`)
     await deleteEnvCopies()
   }
+
   await nodeCliUtils.copyNewEnvValues(`${rootEnvPath}.template`, rootEnvPath)
+  // Load env vars from root .env file into process.env in case this is the
+  // first run or if there are new vars copied over from .env.template.
+  dotenv.config()
+
   await nodeCliUtils.ensureDirectory(buildWwwrootDir)
   for (const dir of directoriesWithEnv) {
     await nodeCliUtils.overwriteEnvFile(rootEnvPath, path.join(dir, '.env'), dir === serverTestPath)

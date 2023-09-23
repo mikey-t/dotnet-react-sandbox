@@ -8,6 +8,9 @@ import * as certUtils from '@mikeyt23/node-cli-utils/certUtils'
 import * as dbMigrationUtils from '@mikeyt23/node-cli-utils/dbMigrationUtils'
 import * as dotnetUtils from '@mikeyt23/node-cli-utils/dotnetUtils'
 import { log } from '@mikeyt23/node-cli-utils'
+import SandboxDependencyChecker from './SandboxDependencyChecker.ts'
+import ProjectSetupUtil from './ProjectSetupUtil.ts'
+import { StringBoolArray } from './DependencyChecker.ts'
 
 const projectName = process.env.PROJECT_NAME || 'drs' // Need a placeholder before first time syncEnvFiles task runs
 
@@ -29,6 +32,38 @@ const preDeployHttpPort = '3001'
 const mainDbContextName = 'MainDbContext'
 const testDbContextName = 'TestDbContext'
 const directoriesWithEnv = [dockerPath, serverPath, serverTestPath, dbMigratorPath, clientPath, buildDir]
+
+let dependencyChecker: SandboxDependencyChecker
+let projectSetupUtil: ProjectSetupUtil
+let siteUrl: string = ''
+let noDb = false
+
+export const setup = series(
+  syncEnvFiles,
+  populateSetupGlobals,
+  setupCheckDependencies,
+  setupCert,
+  setupHostsEntry,
+  ['dockerUp', async () => conditionally(async () => doDockerCompose('up'), !noDb)],
+  ['dbInitialCreate', async () => conditionally(async () => withRetryAsync(async () => dbMigratorCliCommand('dbInitialCreate'), 5, 3000, 10000, 'dbMigratorCliCommand'), !noDb)],
+  ['dbMigrate', async () => conditionally(async () => executeEfAction('update', 'both'), !noDb)]
+)
+
+// todo: cert, hosts, db
+export const setupStatus = series(
+  syncEnvFiles,
+  populateSetupGlobals,
+  reportSetupStatus
+)
+
+export const teardown = series(
+  syncEnvFiles,
+  populateSetupGlobals,
+  teardownCheckDependencies,
+  teardownCert,
+  teardownHostsEntry,
+  teardownDb
+)
 
 export const server = series(syncEnvFiles, runServer)
 export const client = series(syncEnvFiles, runClient)
@@ -119,9 +154,9 @@ export async function winInstallCert() {
   const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winInstallCert local.acme.com')
   const certPath = path.join('./cert/', `${url}.pfx`)
   if (fs.existsSync(certPath)) {
-    log(`Using cert file at path ${certPath}`)
+    log(`using cert file at path ${certPath}`)
   } else {
-    log(`Cert does not exist at path ${certPath}, generating...`)
+    log(`cert does not exist at path ${certPath}, generating...`)
     await certUtils.generateCertWithOpenSsl(url)
   }
   log(`attempting to install cert for url ${url}`)
@@ -200,9 +235,14 @@ async function bashIntoPostgresContainer() {
   await nodeCliUtils.spawnDockerCompose(dockerComposePath, 'exec', { args: ['-it', 'postgresql', 'bash'], attached: true })
 }
 
-async function dbMigratorCliCommand(command: string) {
+type DbMigratorCommand = 'dbInitialCreate' | 'dbDropAll' | 'dbDropAndRecreate'
+
+async function dbMigratorCliCommand(command: DbMigratorCommand) {
   if (command === 'dbInitialCreate') {
-    await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
+    const result = await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
+    if (result.code !== 0) {
+      throw new Error(`dbInitialCreate failed with exit code ${result.code}`)
+    }
     return
   }
   if (command === 'dbDropAll' && !await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
@@ -212,14 +252,15 @@ async function dbMigratorCliCommand(command: string) {
     if (!await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
       return
     } else {
-      await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbDropAll'])
-      await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'])
+      await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbDropAll'], { throwOnNonZero: true })
+      await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbInitialCreate'], { throwOnNonZero: true })
       return
     }
   }
   throw new Error(`Unknown DbMigrator command: ${command}`)
 }
 
+type DbContextOption = 'main' | 'test' | 'both'
 const dbContextOptions = ['main', 'test', 'both']
 
 const dbContexts: nodeCliUtils.StringKeyedDictionary = {
@@ -241,12 +282,14 @@ function logDbCommandMessage(prefix: string) {
   log(`${prefix} using project path 📁${dbMigratorPath} and db context arg ⚙️${getDbContextArg()} (options: ${dbContextOptions.join('|')})`)
 }
 
-async function executeEfAction(action: 'list' | 'update' | 'add' | 'remove') {
-  const dbContextArg = getDbContextArg()
+async function executeEfAction(action: 'list' | 'update' | 'add' | 'remove', dbContextOverride?: DbContextOption) {
+  const dbContextArg = dbContextOverride || getDbContextArg()
   const migrationName = getMigrationNameArg()
 
   log(`dbContextArg: ${dbContextArg}`)
-  log(`migrationName: ${migrationName}`)
+  if (migrationName) {
+    log(`migrationName: ${migrationName}`)
+  }
 
   if (action === 'add' && !migrationName) {
     throw new Error('Missing migration name')
@@ -268,11 +311,11 @@ async function executeEfAction(action: 'list' | 'update' | 'add' | 'remove') {
           await dbMigrationUtils.efMigrationsUpdate(dbMigratorPath, dbContextName, migrationName)
           break
         case 'add':
-          log(`Adding migration ➡️${migrationName} to ➡️${dbContextName}`)
+          log(`adding migration ➡️${migrationName} to ➡️${dbContextName}`)
           await dbMigrationUtils.efAddMigration(dbMigratorPath, dbContextName, migrationName!, true)
           break
         case 'remove':
-          log(`Removing last migration from ➡️${dbContextName}`)
+          log(`removing last migration from ➡️${dbContextName}`)
           await dbMigrationUtils.efRemoveLastMigration(dbMigratorPath, dbContextName)
           break
       }
@@ -305,10 +348,8 @@ async function doRunBuilt() {
   await fsp.writeFile(buildEnvPath, '\nASPNETCORE_ENVIRONMENT=Production', { flag: 'a' })
   await fsp.writeFile(buildEnvPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, { flag: 'a' })
   await fsp.writeFile(buildEnvPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, { flag: 'a' })
-  const devCertName = process.env.DEV_CERT_NAME
-  if (!devCertName) {
-    throw new Error('Missing DEV_CERT_NAME env var')
-  }
+  const siteUrl = projectSetupUtil.getRequiredEnvVar('SITE_URL')
+  const devCertName = `${siteUrl}.pfx}`
   const certSourcePath = path.join('./cert/', devCertName)
   const certDestinationPath = path.join(buildDir, devCertName)
   await fsp.copyFile(certSourcePath, certDestinationPath)
@@ -321,4 +362,114 @@ function getRequireAdditionalParam(errorWithExample: string) {
     throw new Error(errorWithExample)
   }
   return additionalParam
+}
+
+async function populateSetupGlobals() {
+  dependencyChecker = new SandboxDependencyChecker()
+  projectSetupUtil = new ProjectSetupUtil(dependencyChecker)
+  siteUrl = projectSetupUtil.getRequiredEnvVar('SITE_URL')
+  if (process.argv[3] && process.argv[3].toLowerCase() === 'nodb') {
+    noDb = true
+  }
+}
+
+async function setupCheckDependencies() {
+  let report = await dependencyChecker.getReport()
+  if (noDb) {
+    report = report.filter(({ key }) => key !== 'DB_PORT is available')
+  }
+  log(dependencyChecker.getFormattedReport(report))
+  const depsCheckPassed = dependencyChecker.hasAllDependencies(report)
+  log(`Dependencies check passed: ${depsCheckPassed ? 'true' : 'false'}\n`,)
+  if (!depsCheckPassed) {
+    throw Error('dependencies check failed - see above')
+  }
+}
+
+async function reportSetupStatus() {
+  const dependenciesReport = await dependencyChecker.getReport()
+  log('Checking dependencies:')
+  log(dependencyChecker.getFormattedReport(dependenciesReport, true, ['Elevated Permissions', 'DB_PORT is available', 'DEV_CLIENT_PORT is available', 'DEV_SERVER_PORT is available']))
+
+  log('Checking cert and hosts setup:')
+  const certStatuses = await projectSetupUtil.getStatusCert(siteUrl)
+  const hostsStatus = await projectSetupUtil.getStatusHosts(siteUrl)
+  const othersReport: StringBoolArray = [...certStatuses, hostsStatus]
+  log(dependencyChecker.getFormattedReport(othersReport))
+}
+
+async function setupCert() {
+  await projectSetupUtil.ensureCertSetup(siteUrl)
+}
+
+async function setupHostsEntry() {
+  await projectSetupUtil.ensureHostsEntry(siteUrl)
+}
+
+async function teardownCheckDependencies() {
+  if (!await dependencyChecker!.hasElevatedPermissions()) {
+    throw new Error('Elevated permissions are required to run teardown')
+  }
+}
+
+async function teardownCert() {
+  await projectSetupUtil.teardownCertSetup(siteUrl)
+}
+
+async function teardownHostsEntry() {
+  await projectSetupUtil.removeHostsEntry(siteUrl)
+}
+
+async function teardownDb() {
+  if (noDb) {
+    log('skipping')
+    return
+  }
+  if (!await nodeCliUtils.getConfirmation(`Do you want to completely destroy your database? (this will delete './docker/pg')`)) {
+    return
+  }
+  await doDockerCompose('down')
+  await nodeCliUtils.emptyDirectory('docker/pg')
+}
+
+async function withRetryAsync(func: () => Promise<void>, maxRetries: number, delayMilliseconds: number, initialDelayMilliseconds?: number, functionLabel?: string) {
+  let done = false
+  let attemptNumber = 0
+  let lastError: unknown
+  const funcName = functionLabel || func.name || 'anonymous'
+
+  if (initialDelayMilliseconds) {
+    log(`initialDelayMilliseconds set to ${initialDelayMilliseconds} - waiting before first try`)
+    await nodeCliUtils.sleep(initialDelayMilliseconds)
+  }
+
+  while (!done) {
+    attemptNumber++
+    log(`calling ${funcName} - attempt number ${attemptNumber}`)
+    try {
+      await func()
+      done = true
+      log(`attempt ${attemptNumber} was successful`)
+      break
+    } catch (err) {
+      lastError = err
+      log(`attempt number ${attemptNumber} failed - waiting ${delayMilliseconds} milliseconds before trying again`)
+    }
+
+    if (attemptNumber === maxRetries) {
+      throw new Error(`Failed to run method with retry after ${maxRetries} attempts`, { cause: lastError })
+    }
+
+    if (!done) {
+      await nodeCliUtils.sleep(delayMilliseconds)
+    }
+  }
+}
+
+async function conditionally(asyncFunc: () => Promise<void>, condition: boolean) {
+  if (condition) {
+    await asyncFunc()
+  } else {
+    log('skipping')
+  }
 }

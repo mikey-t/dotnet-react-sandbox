@@ -51,7 +51,7 @@ public class RegistrationLogic : IRegistrationLogic
     public async Task<RegistrationResult> Register(RegistrationRequest req)
     {
         var email = EmailLogic.NormalizeEmail(req.Email);
-        
+
         if (!await _loginLogic.IsWhitelisted(email))
         {
             throw new ThirdPartyLoginException("Email is not on the approved list");
@@ -158,13 +158,24 @@ public class RegistrationLogic : IRegistrationLogic
 
     private string GetVerificationEmailBodyText(Guid code)
     {
-        var domain = _envSettings.GetString(GlobalSettings.SITE_URL);
+        var domain = GetDomainString();
         return string.Format(VERIFICATION_EMAIL_TEMPLATE_TEXT, domain, code);
     }
 
     private string GetVerificationEmailBodyHtml(Guid code)
     {
-        var domain = _envSettings.GetString(GlobalSettings.SITE_URL);
+        var domain = GetDomainString();
         return string.Format(VERIFICATION_EMAIL_TEMPLATE_HTML, domain, code, domain, code);
+    }
+
+    private string GetDomainString()
+    {
+        var domain = _envSettings.GetString(GlobalSettings.SITE_URL);
+        var devClientPort = _envSettings.GetString(GlobalSettings.DEV_CLIENT_PORT);
+        if (!string.IsNullOrEmpty(devClientPort))
+        {
+            domain = $"{domain}:{devClientPort}";
+        }
+        return domain;
     }
 }

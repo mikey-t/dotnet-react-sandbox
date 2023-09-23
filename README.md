@@ -87,7 +87,6 @@ Manual setup:
   - PROJECT_NAME
   - SITE_URL
   - JWT_ISSUER - match to your SITE_URL
-  - DEV_CERT_NAME - match to your SITE_URL
   - COMPOSE_PROJECT_NAME - this affects the names of your docker containers, has restrictions in what characters can be used, so try just using lowercase alphanumeric with underscores
   - DB_USER, DB_NAME - I usually set these to the same value for my local environment
   - SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD - this account will get seeded so you can login immediately after the site comes up on your local machine
@@ -254,6 +253,65 @@ For teams using the same project you'd want extra steps like checking out latest
 - delete ./docker_backup
 - delete ./drs.dump
 
+## How to Customize
+
+### License
+
+If you decide you like this project enough to use it as a template for your own project, please keep the original license file (rename it to something like ORIGINAL_LICENSE or DOTNET_REACT_SANDBOX_LICENSE), then create your own license file. Perhaps also call out in your readme that it's a template of this project and document which parts are customized and under your new license if it's different.
+
+### Client App Copyright
+
+To update the copyright text at the bottom of rendered web pages, update `.client/src/components/Copyright.tsx`.
+
+### Project Name
+
+The project name doesn't do much right now, but if you decide you want to change your project name, these would be the steps:
+
+- Change your root directory name
+- Change value in your `.env` file for key: `PROJECT_NAME`
+- Change your .net solution file name: `./server/your-project-name.sln`
+  - Also change the name within the contents of the .net solution file - replace "dotnet-react-sandbox.sln" (it might be something slightly different) with "your-project-name.sln"
+
+### Docker Container Prefixes
+
+I'm using the environment variable `COMPOSE_PROJECT_NAME` to inform docker-compose commands what prefix to use with the containers it starts. If you used the generator script to create the project, then it will be set to whatever you specified for the project name. You can change this at any time, but be sure to first bring your containers down before renaming the value of `COMPOSE_PROJECT_NAME` in your `.env` file.
+
+Note that docker-compose requires a strict subset of characters for this value. From the [docs](https://docs.docker.com/compose/environment-variables/envvars/#:~:text=Project%20names%20must%20contain%20only,lowercase%20letter%20or%20decimal%20digit.):
+
+"Project names (`COMPOSE_PROJECT_NAME`) must contain only lowercase letters, decimal digits, dashes, and underscores, and must begin with a lowercase letter or decimal digit."
+
+### Change Local Database Name or Credentials
+
+The easiest way to do this is the destructive way, but note that this destroys your entire local database and re-creates it:
+
+- Bring docker containers down by running: `swig dockerDown`
+- Delete `./docker/pg` directory
+- Update `.env` values you want to be different
+- Bring docker containers back up by running: `swig dockerUp`
+- Wait ~15 seconds to allow Postgres initialization to complete
+- Run `swig dbInitialCreate`
+- run `swig dbMigrate both`
+
+The non-destructive way is more difficult, especially because you will have to run the commands for both databases (main and test). These are high level and untested general steps you might take:
+
+- Make sure your DB is up and running: `swig dockerUp`
+- Login to a shell in your running DB instance: `swig bashIntoDb` (gives you a bash shell as root)
+- Run any desired commands such as changing DB name or password (you'll have to do some research to find the exact commands to run)
+  - Be sure to change both databases (main and test)
+- Bring docker down by running: `swig dockerDown`
+- Update `.env` values if necessary
+- Bring docker back up by running: `swig dockerUp`
+
+### Change Local Dev URL
+
+There are swig commands to change each thing related to the URL manually, but the easiest way is to use the `setup` and `teardown` tasks:
+
+- Run `swig teardown nodb` or just `swig teardown` and answer **"no"** when it asks if you want to delete your database
+- Update `.env` values:
+  - `SITE_URL`
+  - `JWT_ISSUER`
+- Run `swig setup nodb` or `swig dockerDown && swig setup`
+
 ## Changelog
 
 ### 2023-09-18 Merged branch `new-directory-structure`
@@ -269,6 +327,7 @@ For teams using the same project you'd want extra steps like checking out latest
 ## TODO
 
 - Update dotnet-react-generator so it works with new project structure
+- Get cert generation and install working on linux and mac
 - Document new preference for using VSCode
 - Document new project structure (and working in separate VSCode workspaces for client and server development)
 - Add in vitest for client unit testing

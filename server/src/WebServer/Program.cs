@@ -39,7 +39,7 @@ try
             kestrelOptions.ListenAnyIP(envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT));
             kestrelOptions.ListenAnyIP(envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTPS_PORT), listenOptions => listenOptions.UseHttps(httpsOptions =>
             {
-                httpsOptions.ServerCertificate = new X509Certificate2(envSettings.GetString(GlobalSettings.DEV_CERT_NAME));
+                httpsOptions.ServerCertificate = new X509Certificate2(envSettings.GetString(GlobalSettings.SITE_URL) + ".pfx");
                 httpsOptions.AllowAnyClientCertificate();
             }));
         });

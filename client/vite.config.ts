@@ -2,14 +2,28 @@ import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import fs from 'fs'
 
+function parseHostname(url: string | undefined) {
+  if (!url) {
+    throw new Error('Missing url')
+  }
+  try {
+    const urlWithProtocol = /^https?:\/\//i.test(url) ? url : 'http://' + url
+    const urlObj = new URL(urlWithProtocol)
+    return urlObj.hostname
+  } catch (err) {
+    throw new Error(`Could not parse url: ${url}`)
+  }
+}
+
+
+
 // https://vitejs.dev/config/
 export default ({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd(), '') }
+  const hostname = parseHostname(process.env.SITE_URL)
   const clientPort = parseInt(process.env.DEV_CLIENT_PORT)
   const serverPort = parseInt(process.env.DEV_SERVER_PORT)
-  const devCertName = process.env.DEV_CERT_NAME
-  const siteUrlWithPort = process.env.SITE_URL
-  const host = siteUrlWithPort.substring(0, siteUrlWithPort.indexOf(':'))
+  const devCertName = `${hostname}.pfx`
 
   return {
     plugins: [react()],
@@ -23,7 +37,7 @@ export default ({ mode }) => {
       css: true,
     },
     server: {
-      host: host,
+      host: hostname,
       https: {
         pfx: fs.readFileSync(`../cert/${devCertName}`)
       },

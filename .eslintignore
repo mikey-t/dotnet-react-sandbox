@@ -1,2 +1,5 @@
 *
 !swigfile.ts
+!DependencyChecker.ts
+!SandboxDependencyChecker.ts
+!ProjectSetupUtil.ts

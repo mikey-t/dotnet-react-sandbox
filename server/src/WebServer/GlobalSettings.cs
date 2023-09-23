@@ -42,10 +42,10 @@ namespace WebServer
         PRE_DEPLOY_HTTPS_PORT,
         
         [SettingInfo(ShouldLogValue = true)]
-        DEV_CERT_NAME,
-        
-        [SettingInfo(ShouldLogValue = true)]
         DEV_SERVER_PORT,
+
+        [SettingInfo(ShouldLogValue = true)]
+        DEV_CLIENT_PORT,
         
         // *********
         // Secrets *

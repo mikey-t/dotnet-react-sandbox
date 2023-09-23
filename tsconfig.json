@@ -14,7 +14,12 @@
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["swigfile.ts"],
+  "include": [
+    "swigfile.ts",
+    "SandboxDependencyChecker.ts",
+    "DependencyChecker.ts",
+    "ProjectSetupUtil.ts"
+  ],
   "exclude": [
     ".vscode",
     "build",

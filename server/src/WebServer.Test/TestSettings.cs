@@ -19,7 +19,7 @@ public enum TestSettings
     [SettingInfo(DefaultValue = "Abc1234!", DefaultForEnvironment = DefaultSettingForEnvironment.LocalOnly)]
     DB_PASSWORD,
 
-    [SettingInfo(DefaultValue = "test_drs", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]
+    [SettingInfo(DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]
     DB_NAME,
 
     [SettingInfo(DefaultValue = "true", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]

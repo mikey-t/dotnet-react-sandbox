@@ -46,9 +46,12 @@ export const setup = series(
   setupCheckDependencies,
   setupCert,
   setupHostsEntry,
-  ['dockerUp', async () => conditionally(async () => doDockerCompose('up'), !noDb)],
-  ['dbInitialCreate', async () => conditionally(async () => withRetryAsync(async () => dbMigratorCliCommand('dbInitialCreate'), 5, 3000, 10000, 'dbMigratorCliCommand'), !noDb)],
-  ['dbMigrate', async () => conditionally(async () => executeEfAction('update', 'both'), !noDb)]
+  ['dockerUp', () => conditionally(() => doDockerCompose('up'), !noDb)],
+  ['dbInitialCreate', () => conditionally(
+    () => nodeCliUtils.withRetryAsync(() => dbMigratorCliCommand('dbInitialCreate'), 5, 3000, { initialDelayMilliseconds: 10000, functionLabel: 'dbInitialCreate' }),
+    !noDb)
+  ],
+  ['dbMigrate', () => conditionally(() => executeEfAction('update', 'both'), !noDb)]
 )
 
 export const setupStatus = series(
@@ -82,13 +85,13 @@ export const runBuilt = series(syncEnvFiles, doRunBuilt)
 export const createRelease = parallel(series(buildAll, createReleaseTarball), doCreateDbMigratorRelease)
 export const createReleaseTarballOnly = createReleaseTarball
 
-export const dockerUp = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('up')])
-export const dockerUpAttached = series(syncEnvFiles, ['dockerDown', async () => doDockerCompose('down')], ['dockerUpAttached', async () => doDockerCompose('up', true)])
-export const dockerDown = series(syncEnvFiles, ['dockerUp', async () => doDockerCompose('down')])
+export const dockerUp = series(syncEnvFiles, ['dockerUp', () => doDockerCompose('up')])
+export const dockerUpAttached = series(syncEnvFiles, ['dockerDown', () => doDockerCompose('down')], ['dockerUpAttached', () => doDockerCompose('up', true)])
+export const dockerDown = series(syncEnvFiles, ['dockerUp', () => doDockerCompose('down')])
 
-export const dbInitialCreate = series(syncEnvFiles, ['dbInitialCreate', async () => dbMigratorCliCommand('dbInitialCreate')])
-export const dbDropAll = series(syncEnvFiles, ['dbDropAll', async () => dbMigratorCliCommand('dbDropAll')])
-export const dbDropAndRecreate = series(syncEnvFiles, ['dbDropAndRecreate', async () => dbMigratorCliCommand('dbDropAndRecreate')])
+export const dbInitialCreate = series(syncEnvFiles, ['dbInitialCreate', () => dbMigratorCliCommand('dbInitialCreate')])
+export const dbDropAll = series(syncEnvFiles, ['dbDropAll', () => dbMigratorCliCommand('dbDropAll')])
+export const dbDropAndRecreate = series(syncEnvFiles, ['dbDropAndRecreate', () => dbMigratorCliCommand('dbDropAndRecreate')])
 
 export const dbListMigrations = series(syncEnvFiles, doListMigrations)
 export const dbMigrate = series(syncEnvFiles, doDbMigrate)
@@ -447,40 +450,6 @@ async function teardownDb() {
   }
   await doDockerCompose('down')
   await nodeCliUtils.emptyDirectory('docker/pg')
-}
-
-async function withRetryAsync(func: () => Promise<void>, maxRetries: number, delayMilliseconds: number, initialDelayMilliseconds?: number, functionLabel?: string) {
-  let done = false
-  let attemptNumber = 0
-  let lastError: unknown
-  const funcName = functionLabel || func.name || 'anonymous'
-
-  if (initialDelayMilliseconds) {
-    log(`initialDelayMilliseconds set to ${initialDelayMilliseconds} - waiting before first try`)
-    await nodeCliUtils.sleep(initialDelayMilliseconds)
-  }
-
-  while (!done) {
-    attemptNumber++
-    log(`calling ${funcName} - attempt number ${attemptNumber}`)
-    try {
-      await func()
-      done = true
-      log(`attempt ${attemptNumber} was successful`)
-      break
-    } catch (err) {
-      lastError = err
-      log(`attempt number ${attemptNumber} failed - waiting ${delayMilliseconds} milliseconds before trying again`)
-    }
-
-    if (attemptNumber === maxRetries) {
-      throw new Error(`Failed to run method with retry after ${maxRetries} attempts`, { cause: lastError })
-    }
-
-    if (!done) {
-      await nodeCliUtils.sleep(delayMilliseconds)
-    }
-  }
 }
 
 async function conditionally(asyncFunc: () => Promise<void>, condition: boolean) {

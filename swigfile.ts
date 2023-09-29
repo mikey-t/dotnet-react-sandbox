@@ -158,15 +158,15 @@ export async function generateCert() {
 
 export async function winInstallCert() {
   const url = getRequireAdditionalParam('Missing param to be used for cert url. Example: swig winInstallCert local.acme.com')
-  const certPath = path.join('./cert/', `${url}.pfx`)
+  let certPath = path.join('./cert/', `${url}.pfx`)
   if (fs.existsSync(certPath)) {
     log(`using cert file at path ${certPath}`)
   } else {
     log(`cert does not exist at path ${certPath}, generating...`)
-    await certUtils.generateCertWithOpenSsl(url)
+    certPath = await certUtils.generateCertWithOpenSsl(url)
   }
-  log(`attempting to install cert for url ${url}`)
-  await certUtils.winInstallCert(url)
+  log(`attempting to install cert: ${certPath}`)
+  await certUtils.winInstallCert(certPath)
 }
 
 export async function winUninstallCert() {
@@ -222,6 +222,11 @@ async function doBuildDbMigrator() {
 
 async function doCreateDbMigratorRelease() {
   const publishDir = await doBuildDbMigrator()
+  const tarballPath = path.join(releaseDir, dbMigratorTarballName)
+  if (fs.existsSync(tarballPath)) {
+    log(`deleting existing tarball before re-creating: ${tarballPath}`)
+    await fsp.unlink(tarballPath)
+  }
   await nodeCliUtils.createTarball(publishDir, path.join(releaseDir, dbMigratorTarballName), { excludes: ['.env'] })
 }
 
@@ -230,6 +235,11 @@ async function doCopyClientBuild() {
 }
 
 async function createReleaseTarball() {
+  const tarballPath = path.join(releaseDir, releaseTarballName)
+  if (fs.existsSync(tarballPath)) {
+    log(`deleting existing tarball before re-creating: ${tarballPath}`)
+    await fsp.unlink(tarballPath)
+  }
   await nodeCliUtils.createTarball(buildDir, path.join(releaseDir, releaseTarballName), { excludes: ['.env'] })
 }
 
@@ -251,7 +261,8 @@ async function dbMigratorCliCommand(command: DbMigratorCommand) {
     }
     return
   }
-  if (command === 'dbDropAll' && !await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
+  if (command === 'dbDropAll' && await nodeCliUtils.getConfirmation('Are you sure you want to drop main and test databases and database user?')) {
+    await nodeCliUtils.spawnAsync('dotnet', ['run', '--project', dbMigratorPath, 'dbDropAll'], { throwOnNonZero: true })
     return
   }
   if (command === 'dbDropAndRecreate') {
@@ -354,8 +365,8 @@ async function doRunBuilt() {
   await fsp.writeFile(buildEnvPath, '\nASPNETCORE_ENVIRONMENT=Production', { flag: 'a' })
   await fsp.writeFile(buildEnvPath, `\nPRE_DEPLOY_HTTP_PORT=${preDeployHttpPort}`, { flag: 'a' })
   await fsp.writeFile(buildEnvPath, `\nPRE_DEPLOY_HTTPS_PORT=${preDeployHttpsPort}`, { flag: 'a' })
-  const siteUrl = projectSetupUtil.getRequiredEnvVar('SITE_URL')
-  const devCertName = `${siteUrl}.pfx}`
+  const siteUrl = nodeCliUtils.getRequiredEnvVar('SITE_URL')
+  const devCertName = `${siteUrl}.pfx`
   const certSourcePath = path.join('./cert/', devCertName)
   const certDestinationPath = path.join(buildDir, devCertName)
   await fsp.copyFile(certSourcePath, certDestinationPath)
@@ -373,7 +384,7 @@ function getRequireAdditionalParam(errorWithExample: string) {
 async function populateSetupGlobals() {
   dependencyChecker = new SandboxDependencyChecker()
   projectSetupUtil = new ProjectSetupUtil(dependencyChecker)
-  siteUrl = projectSetupUtil.getRequiredEnvVar('SITE_URL')
+  siteUrl = nodeCliUtils.getRequiredEnvVar('SITE_URL')
   if (process.argv[3] && process.argv[3].toLowerCase() === 'nodb') {
     noDb = true
   }

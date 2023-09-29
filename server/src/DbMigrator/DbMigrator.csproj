@@ -12,7 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="MikeyT.DbMigrations" Version="0.2.0-alpha" />
+    <PackageReference Include="MikeyT.DbMigrations" Version="0.2.1-alpha" />
   </ItemGroup>
   
   <ItemGroup>

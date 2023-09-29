@@ -86,7 +86,7 @@ export default class ProjectSetupUtil {
     const hostname = this.convertUrlToHostname(url)
     await this.uninstallCert(hostname)
     if (deleteCertFiles) {
-      const filesToDelete = [`${hostname}.pfx`, `${hostname}.crt`, `${hostname}.key`, 'san.cnf']
+      const filesToDelete = [`${hostname}.pfx`, `${hostname}.crt`, `${hostname}.key`, `${hostname}.cnf`]
       filesToDelete.forEach(async f => {
         const filePath = path.join(this.generatedCertsDir, f)
         if (fs.existsSync(filePath)) {
@@ -110,7 +110,7 @@ export default class ProjectSetupUtil {
     const hostname = this.convertUrlToHostname(url, false)
     const certPath = this.getCertPfxPath(hostname)
     const certFileExists = fs.existsSync(certPath)
-    const certInstalled = await certUtils.winCertAlreadyInstalled(hostname)
+    const certInstalled = await certUtils.winCertIsInstalled(hostname)
     return [{ key: 'Cert file exists', value: certFileExists }, { key: 'Cert installed', value: certInstalled }]
   }
 
@@ -201,7 +201,7 @@ export default class ProjectSetupUtil {
       return
     }
 
-    await certUtils.generateCertWithOpenSsl(hostname, this.generatedCertsDir)
+    await certUtils.generateCertWithOpenSsl(hostname, { outputDirectory: this.generatedCertsDir })
   }
 
   private async installCert(hostname: string) {
@@ -211,13 +211,13 @@ export default class ProjectSetupUtil {
     }
 
     log('checking if cert is already installed')
-    if (await certUtils.winCertAlreadyInstalled(hostname)) {
+    if (await certUtils.winCertIsInstalled(hostname)) {
       log('cert already installed, skipping')
       return
     }
 
     log('cert is not installed - attempting to install')
-    await certUtils.winInstallCert(hostname, this.generatedCertsDir)
+    await certUtils.winInstallCert(this.getCertPfxPath(hostname))
   }
 
   private async uninstallCert(hostname: string) {
@@ -226,7 +226,7 @@ export default class ProjectSetupUtil {
       return
     }
 
-    if (!await certUtils.winCertAlreadyInstalled(hostname)) {
+    if (!await certUtils.winCertIsInstalled(hostname)) {
       log('cert is not installed, skipping')
       return
     }

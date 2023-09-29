@@ -7,7 +7,7 @@
     "npmInstall": "npm install && cd ./client && npm install"
   },
   "devDependencies": {
-    "@mikeyt23/node-cli-utils": "^2.0.0-beta.1",
+    "@mikeyt23/node-cli-utils": "^2.0.0-beta.2",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^18.17.17",
     "@typescript-eslint/eslint-plugin": "^6.5.0",

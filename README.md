@@ -82,6 +82,7 @@ Manual setup:
 - Clone repo
 - Run `npm run npmInstall` (runs npm install in project directory and in `./client`)
 - Run `npx swig installOrUpdateDotnetEfTool`
+- Run `npx swig configureDotnetDevCerts` (only required if you haven't run `dotnet dev-certs` recently - see https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs)
 - Run `npx swig syncEnvFiles` (or manually copy `.env.template` to `.env`)
 - Edit `.env` file with appropriate values for your local environment, especially paying attention to:
   - PROJECT_NAME

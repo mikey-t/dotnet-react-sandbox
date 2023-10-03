@@ -7,7 +7,7 @@
     "npmInstall": "npm install && cd ./client && npm install"
   },
   "devDependencies": {
-    "@mikeyt23/node-cli-utils": "^2.0.0-beta.2",
+    "@mikeyt23/node-cli-utils": "^2.0.0-beta.3",
     "@types/dotenv": "^8.2.0",
     "@types/node": "^18.17.17",
     "@typescript-eslint/eslint-plugin": "^6.5.0",
@@ -15,6 +15,7 @@
     "dotenv": "^16.3.1",
     "eslint": "^8.48.0",
     "swig-cli": "^0.0.14",
+    "swig-cli-modules": "^0.0.1",
     "tsx": "^3.12.10",
     "typescript": "^5.2.2"
   },

@@ -359,8 +359,6 @@ To take full advantage of these you need to open them as a workspace (`File` -> 
 
 - Test cert generation on mac/linux
 - Attempt to automate cert install on mac/linux
-- Document new preference for using VSCode
-- Document new project structure (and working in separate VSCode workspaces for client and server development)
 - Add in vitest for client unit testing
 - More client code cleanup
   - More permanent fixes for eslint warnings in the client project
@@ -371,9 +369,3 @@ To take full advantage of these you need to open them as a workspace (`File` -> 
   - Functionality to enable/disable email verification functionality
   - Alternate non-email functionality for registration for those that don't want to set that up for a small hobby project
 - Docker config/plumbing to generate a deployable image
-- More docs on how to do various things:
-  - How to create a new controller
-  - Dependency injection notes
-  - How to use main and test DB locally to easily write data access related unit tests without destroying test data that you've generated while using your site locally.
-- Rip out custom account schema in favor of built-in .NET Identity (maybe)
-- Consolidate DB migrations into 2 (empty initial and one with everything else)

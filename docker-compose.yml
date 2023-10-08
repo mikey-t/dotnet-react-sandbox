@@ -4,9 +4,12 @@ services:
   postgresql:
     image: postgres:15.3
     volumes:
-      - ./pg/data:/var/lib/postgresql/data
+      - postgresql_data:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: "${DB_ROOT_USER:?}"
       POSTGRES_PASSWORD: "${DB_ROOT_PASSWORD:?}"
     ports:
       - "${DB_PORT:-5432}:5432"
+
+volumes:
+  postgresql_data:

@@ -27,22 +27,34 @@ try
         .WriteTo.Console()
         .ReadFrom.Configuration(ctx.Configuration));
 
-    // Add services to the container.
+    // Add services to the container
     var envSettings = new EnvironmentSettings(new DefaultEnvironmentVariableProvider(), new DefaultSecretVariableProvider());
     envSettings.AddSettings<GlobalSettings>();
     Log.Logger.Information("Loaded environment settings\n{EnvironmentSettings}", envSettings.GetAllAsSafeLogString());
 
-    if (envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT) > 0)
+    // The env var PRE_DEPLOY_HTTP_PORT indicates the server was started with the runBuilt option for testing locally in a single combined package
+    var preDeployPort = envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT);
+    if (preDeployPort > 0)
     {
-        builder.WebHost.ConfigureKestrel(kestrelOptions =>
-        {
-            kestrelOptions.ListenAnyIP(envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT));
-            kestrelOptions.ListenAnyIP(envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTPS_PORT), listenOptions => listenOptions.UseHttps(httpsOptions =>
+        var siteUrl = envSettings.GetString(GlobalSettings.SITE_URL);
+        var httpPort = envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT);
+        var httpsPort = envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTPS_PORT);
+
+        var httpUrl = $"http://{siteUrl}:{httpPort}";
+        var httpsUrl = $"https://{siteUrl}:{httpsPort}";
+
+        builder.WebHost
+            .UseUrls(httpUrl, httpsUrl)
+            .ConfigureKestrel(kestrelOptions =>
             {
-                httpsOptions.ServerCertificate = new X509Certificate2(envSettings.GetString(GlobalSettings.SITE_URL) + ".pfx");
-                httpsOptions.AllowAnyClientCertificate();
-            }));
-        });
+                kestrelOptions.ConfigureHttpsDefaults(httpsOptions =>
+                {
+                    httpsOptions.ServerCertificate = new X509Certificate2(siteUrl + ".pfx");
+                    httpsOptions.AllowAnyClientCertificate();
+                });
+            });
+
+        Log.Logger.Information("Site URL: {HttpsUrl}", httpsUrl);
     }
 
     if (envSettings.IsLocal())
@@ -94,7 +106,6 @@ try
     // app.UsePathBase("/api");
 
     app.UseSerilogRequestLogging();
-
 
     // Configure the HTTP request pipeline.
     if (app.Environment.IsDevelopment())

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { User } from '../../model/models'
 import AdminApi from '../../logic/AdminApi'
 import LoadingBackdrop from '../../components/LoadingBackdrop'
@@ -9,7 +9,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
-import { Checkbox, FormControlLabel, Grid } from '@mui/material'
+import { Checkbox, FormControlLabel } from '@mui/material'
 
 const api = new AdminApi()
 
@@ -77,7 +77,7 @@ export default function Users() {
                 <TableCell align="right">
                   <FormControlLabel label="" control={<Checkbox
                     checked={user.roles.includes(CONTENT_CREATOR_ROLE)}
-                    onChange={_ => toggleUserContentCreator(user.id, user.roles.includes(CONTENT_CREATOR_ROLE))}
+                    onChange={() => toggleUserContentCreator(user.id, user.roles.includes(CONTENT_CREATOR_ROLE))}
                   />} />
                 </TableCell>
               </TableRow>

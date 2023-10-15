@@ -1,10 +1,8 @@
 .vscode
 build
 cert
-client
 docker
 docs
 node_modules
 release
 server
-client

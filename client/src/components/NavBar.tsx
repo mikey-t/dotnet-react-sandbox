@@ -188,7 +188,7 @@ export default function NavBar() {
               })}
             </Menu>
           </Box>}
-          {!auth.user && <Button variant="outlined" color="inherit" onClick={_ => navigate('/login')}>Login</Button>}
+          {!auth.user && <Button variant="outlined" color="inherit" onClick={() => navigate('/login')}>Login</Button>}
         </Toolbar>
       </Container>
     </AppBar>

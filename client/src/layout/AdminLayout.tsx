@@ -60,7 +60,7 @@ export default function AdminLayout() {
           >
             Admin Dashboard
           </Typography>
-          <IconButton onClick={_ => navigate('/')}><ExitToAppIcon /></IconButton>
+          <IconButton onClick={() => navigate('/')}><ExitToAppIcon /></IconButton>
         </Toolbar>
       </AppBar>
       <Drawer variant="permanent" open={open}>
@@ -79,19 +79,19 @@ export default function AdminLayout() {
         </Toolbar>
         <Divider />
         <List component="nav">
-          <ListItem button onClick={_ => navigate('/admin')}>
+          <ListItem button onClick={() => navigate('/admin')}>
             <ListItemIcon>
               <DashboardIcon />
             </ListItemIcon>
             <ListItemText primary="Home" />
           </ListItem>
-          <ListItem button onClick={_ => navigate('/admin/users')}>
+          <ListItem button onClick={() => navigate('/admin/users')}>
             <ListItemIcon>
               <PersonIcon />
             </ListItemIcon>
             <ListItemText primary="Users" />
           </ListItem>
-          <ListItem button onClick={_ => navigate('/admin/whitelist')}>
+          <ListItem button onClick={() => navigate('/admin/whitelist')}>
             <ListItemIcon>
               <LockOpenIcon />
             </ListItemIcon>

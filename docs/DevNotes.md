@@ -6,7 +6,7 @@ When working on swigfile changes within the new `swig-cli-modules` project, some
 
 - `npm rm swig-cli-modules`
 - `npm i -D ../swig-cli-modules`
-- In swig-cli-modules: `npm run watchEsm`
+- In swig-cli-modules: `npm run watch`
 
 And to undo this just remove and re-add the dependency:
 
@@ -36,3 +36,5 @@ npm update --save
 Don't forget to update root dependencies in addition to client project dependencies.
 
 Updating past semver should probably be done one at a time to test for breaking changes for each dependency separately.
+
+Note that dependencies with a major version of 0 will never be updated by `npm update --save`, so you'll have to manually run `npm i -D name-of-package@latest` to get the latest version.

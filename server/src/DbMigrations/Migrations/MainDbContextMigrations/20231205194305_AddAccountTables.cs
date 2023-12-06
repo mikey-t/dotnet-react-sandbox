@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 using MikeyT.DbMigrations;
 
 #nullable disable
 
-namespace DbMigrator.Migrations.TestDbContextMigrations
+namespace DbMigrations.Migrations.MainDbContextMigrations
 {
     public partial class AddAccountTables : Migration
     {

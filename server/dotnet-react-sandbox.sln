@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebServer", "src\WebServer\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebServer.Test", "src\WebServer.Test\WebServer.Test.csproj", "{416997F7-DEC1-4898-BEEE-4A15DD0CEE3D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrator", "src\DbMigrator\DbMigrator.csproj", "{A3E32C55-3420-4413-B50C-CBBAB03A179F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{3F9670B2-B2E1-4942-80D7-2E1BCF195C00}"
 	ProjectSection(SolutionItems) = preProject
 		docker\docker-compose.yml = docker\docker-compose.yml
@@ -31,6 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		docs\SocialLogins.md = docs\SocialLogins.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrations", "src\DbMigrations\DbMigrations.csproj", "{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,14 +48,14 @@ Global
 		{416997F7-DEC1-4898-BEEE-4A15DD0CEE3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{416997F7-DEC1-4898-BEEE-4A15DD0CEE3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{416997F7-DEC1-4898-BEEE-4A15DD0CEE3D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A3E32C55-3420-4413-B50C-CBBAB03A179F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A3E32C55-3420-4413-B50C-CBBAB03A179F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A3E32C55-3420-4413-B50C-CBBAB03A179F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A3E32C55-3420-4413-B50C-CBBAB03A179F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{41DEA75E-8338-42DC-A052-6BD51EF82D52} = {B19B3274-791B-403C-8F81-4DEE46B004F8}
 		{416997F7-DEC1-4898-BEEE-4A15DD0CEE3D} = {B19B3274-791B-403C-8F81-4DEE46B004F8}
-		{A3E32C55-3420-4413-B50C-CBBAB03A179F} = {B19B3274-791B-403C-8F81-4DEE46B004F8}
+		{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B} = {B19B3274-791B-403C-8F81-4DEE46B004F8}
 	EndGlobalSection
 EndGlobal

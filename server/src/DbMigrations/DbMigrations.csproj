@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="MikeyT.DbMigrations" Version="0.6.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update=".env" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Migrations/MainDbContextMigrations" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Migrations/TestDbContextMigrations" />
+  </ItemGroup>
+</Project>

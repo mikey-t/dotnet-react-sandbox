@@ -58,7 +58,7 @@ This is a combination of a playground for trying new ideas as well as a referenc
 
 ## Setup Requirements
 
-- Node.js >= 18
+- Node.js >= 20
 - .NET 6 SDK
 - Docker
 - OpenSSL

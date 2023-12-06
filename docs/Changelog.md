@@ -1,5 +1,12 @@
 ## Dotnet React Sandbox Changelog
 
+### 2023-12-16
+
+Upgrade dependency versions.
+
+- Pinned NodeJS to 20 for root and client project
+- Upgraded vite to 5.x
+
 ### 2023-12-05
 
 Updated project to work with new db-migrations-dotnet project and associated changes in swig-cli module DotnetReactSandbox.

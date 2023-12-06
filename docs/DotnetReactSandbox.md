@@ -13,9 +13,92 @@ This is a combination of a playground for trying new ideas as well as a referenc
 | Npm | [swig-cli-modules](https://www.npmjs.com/package/swig-cli-modules) | [mikey-t/swig-cli-modules](https://github.com/mikey-t/swig-cli-modules) |
 | Npm | [dotnet-react-generator](https://www.npmjs.com/package/dotnet-react-generator) | [mikey-t/dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator) |
 
+## Solution Features
+
+- Dotnet core backend API
+- React client app using [vite](https://vitejs.dev/) for tooling and written in Typescript
+- Cross platform development*
+- Lightning fast startup and full hot reload for local development for both server and client
+- Postgres database running in Docker with fully automated management via swig tasks
+- Local trusted https support* (especially important when working on social login functionality locally)
+- Role based user authentication/authorization
+- Segregated test database, perfect for running potentially destructive unit tests that access the database - without disturbing your local application data
+- Manage primary and test databases on a dev machine simultaneously with simply centralized shell commands
+- VSCode workspaces for separate client and server work (optional)
+- Dapper for data access (EF is only used for database migrations)
+- Misc react client starter code and features:
+  - Material UI
+  - React router
+  - Dark mode
+  - Login and registration components/pages
+  - Social logins functionality (Microsoft, Google)
+  - Email registration (WIP)
+  - Basic routing setup
+  - Basic admin site template with auth-aware routing
+  - Eslint setup
+- Automated, centralized dev tasks:
+  - Project setup and teardown
+    - Cert generation and installation*
+    - Hosts entry
+    - Database setup
+  - Build (client and server)
+  - Test (client and server)
+  - Lint
+  - Create and run a production configuration of the app locally with the server and client bundled together
+  - Package app for deployment
+  - Simple wrapper commands for managing the database with docker compose
+- Simple but very powerful and flexible database migrations functionality using plain SQL files with Microsoft's EntityFramework Core managing migration tracking (via [db-migrations-dotnet](https://github.com/mikey-t/db-migrations-dotnet))
+  - Wrapper commands around Microsoft EntityFramework Core migrations tool ([dotnet-ef](https://www.nuget.org/packages/dotnet-ef))
+  - Manage a primary and test database simultaneously with simple centralized commands
+  - Automated creation of deployable executable to migrate a production database
+
+- Generator script for quickly generating new projects based on this one: [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator)
+
+> \* Automated setup and teardown functionality is only currently supported on Windows.
+
+## Setup Requirements
+
+- Node.js >= 18
+- .NET 6 SDK
+- Docker
+- OpenSSL
+  - Windows: install via chocolatey in an admin shell
+  - Linux: probably already installed (if not, google it)
+  - Mac: install OpenSSL via brew (the pre-installed LibreSSL version will not work)
+- PgAdmin or VSCode PostgreSQL extension (optional DB management tool)
+
+## Quick Start
+
+This is an example of how to quickly create a new solution based on this project. For more detailed instructions, see [Initial Development Setup](#initial-development-setup).
+
+> For Linux and Mac you will need to install certificates manually - see [Certificate Install](#certificate-install) for more info.
+
+We will create a project named "acme" with a local URL of "local.acme.com".
+
+- Ensure you have [setup requirements](#setup-requirements) installed first
+- Install npm package `swig-cli` globally:
+  ```
+  npm i -g swig-cli@latest
+  ```
+- Navigate to the directory where you want to create your project
+- Use the npm package `dotnet-react-generator` to create your new project (see the [dotnet-react-generator readme](https://github.com/mikey-t/dotnet-react-generator) for more info):
+  ```
+  npx -y dotnet-react-generator@latest -o acme -u local.acme.com -d acme
+  ```
+- Navigate into the newly created directory and run: `npm run npmInstall`
+- Run `swig ensureDotnetEfToolInstalled`
+- Run: `swig syncEnvFiles`
+- Optional: customize values in your project root `.env`
+- Open an admin terminal, navigate to your new solution and run: `swig setup`
+- In 2 separate terminals (admin not required):
+  - `swig server`
+  - `swig client`
+- Open a browser and navigate to your new site: https://local.acme.com:3000/
+- Login with username `admin@test.com` and password `Abc1234!` (this user was populated from values in your `.env`)
+
 ## Available CLI Tasks
 
-This project uses [swig](https://github.com/mikey-t/swig) for automating dev tasks and generally for gluing things together. It works similarly to gulp. Swig functionality normally goes directly in  the `swigfile.ts` file, but commands for this project happen to be packaged up into a "swig module" called `DotnetReactSandbox` (repo: https://github.com/mikey-t/swig-cli-modules).
+This project uses [swig](https://github.com/mikey-t/swig) for automating dev tasks and generally for gluing things together. It works similarly to gulp. Swig functionality normally goes directly in  the `swigfile.ts` file, but commands for this project happen to be encapsulated in a "swig module" called `DotnetReactSandbox` (repo: https://github.com/mikey-t/swig-cli-modules).
 
 If you've just cloned the project, first install npm dependencies in the root as well as the client app by running:
 
@@ -35,17 +118,94 @@ Get a list of all the available tasks by running:
 swig
 ```
 
-Run commands with:
+Run tasks with:
 
 ```
 swig <taskName>
 ```
 
+You can also filter tasks. For example, display all tasks with "db" in their name (case insensitive):
+
+```
+> swig filter db
+[ Command: filter ][ Swigfile: swigfile.ts ][ Version: 0.0.16 ]
+Available tasks:
+  bashIntoDb
+  dbAddMigration
+  dbBootstrapDbContext
+  dbBootstrapMigrationsProject
+  dbCreateRelease
+  dbListMigrations
+  dbMigrate
+  dbRemoveMigration
+  dbSetup
+  dbShowConfig
+  dbTeardown
+[ Result: success ][ Total duration: 182 ms ]
+```
+
+## Initial Development Setup
+
+First ensure you have all the [Setup Requirements](#setup-requirements) setup requirements - see above.
+
+> Note: the repository cloning and initial customization can be done automatically using the npm script [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator). The generator will clone the repo, delete the git dir, name the project, customize various files in the project that reference the project name and set `.env` values for you based on params passed.
+
+- In a shell, navigate to the directory you want your project to go in
+- Clone this repository, for example: `git clone git@github.com:mikey-t/dotnet-react-sandbox.git`
+- Rename the directory to your new desired project name and delete the new project's `.git` directory
+- Change directory into your new project
+- Run `npm run npmInstall` (runs npm install in project directory root and in `./client`)
+- Run `swig ensureDotnetEfToolInstalled` (ensures the Microsoft EntityFramework Core migrations tool is install: [dotnet-ef](https://www.nuget.org/packages/dotnet-ef))
+- Run `swig configureDotnetDevCerts` (only required if you haven't run `dotnet dev-certs` recently - see https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs)
+- Run `swig syncEnvFiles` (or manually copy `.env.template` to `.env`)
+- Edit `.env` file with appropriate values for your local environment, especially paying attention to:
+  - PROJECT_NAME - the same value you used to name your new project root directory, for example
+  - SITE_URL - the development URL, for example `local.your-project.com`
+  - JWT_ISSUER - match to your SITE_URL
+  - COMPOSE_PROJECT_NAME - this affects the names of your docker containers and has character restrictions, so only use lowercase alphanumeric with underscores
+  - DB_USER, DB_NAME - I usually set these to the same value for my local environment
+  - DB_NAME_TEST - this should be exactly the same as the DB_NAME but with prefixed with "test_" (this restriction will be lifted in the future)
+  - SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD - this account will get seeded so you can login immediately after the site comes up on your local machine
+- Ensure docker is running on your machine and then run `swig dockerUp`
+- Wait ~15 seconds for the PostgreSQL instance running in it's docker container to do first time initialization
+- Run `swig dbSetup`
+- Run `swig dbMigrate`
+- Create hosts entry (`C:\Windows\System32\drivers\etc\hosts` on windows) mapping `127.0.0.1` to `local.drs.mikeyt.net` (or whatever url you've set in `.env`)
+- Generate local self-signed ssl certificate (replace url with your own and be sure it matches your SITE_URL in your `.env` - recommend prefixing URL with "`local.`"): `swig generateCert local.drs.mikeyt.net`
+- Add cert to local trusted cert store (see [Certificate Install](#certificate-install) section below)
+
+Verify your new project setup:
+
+- In 2 separate terminals, run
+  - `swig server`
+  - `swig client`
+- Navigate to https://local.drs.mikeyt.net:3000 (replace with whatever URL you've chosen and added to your `.env`)
+- Login with your super admin user - use the credentials you set in your `.env` (defaults to `admin@test.com`/`Abc1234!`)
+- Setup a connection to your locally running database with PgAdmin or a VSCode extension by using `localhost` as the host and credentials from `DB_ROOT_USER` and `DB_ROOT_PASSWORD` from your `.env`
+
+Note that social logins (login with google and microsoft), google analytics and user registration using AWS SES won't work without additional setup. For setting up social logins, see [./SocialLogins.md](./SocialLogins.md).
+
+## Remove Project
+
+### Manual Removal
+
+These are the steps to take if you'd like to revert changes made to your system for one of these projects:
+
+- Bring docker containers down (run in a shell in the project directory): `swig dockerDown`
+- Remove hosts entry
+- Uninstall certificate
+
+### Automatic Removal
+
+Run in an elevated terminal in your project directory:
+
+```
+swig teardown
+```
+
 ## Run Locally
 
-For first time setup, first follow the instructions under [Initial Development Setup](#initial-development-setup) below, and then come back here.
-
-Once you're setup, starting your project using these steps will provide full hot-reload functionality for both the client and server application for a nice fast development loop. The web server requires you to press "a" in the terminal on the first "rude" edit in .net 6 after the initial startup, but after that will automatically reload on any change.
+For first time setup, follow the instructions under [Quick Start](#quick-start) or [Initial Development Setup](#initial-development-setup), and then come back here.
 
 Ensure you've started docker and then run:
 
@@ -63,54 +223,7 @@ swig server
 swig client
 ```
 
-Then navigate to https://local.drs.mikeyt.net:3000 (or whatever url you've changed it to during your initial setup - see below).
-
-## Initial Development Setup
-
-Pre-requisites:
-- Node.js version >= 18.x
-- .NET 6 SDK
-- Docker
-- Openssl
-  - Windows: install via chocolatey in admin shell
-  - Linux: probably already installed (if not, google it)
-  - Mac: install via brew (the pre-installed LibreSSL version will NOT work)
-- PgAdmin or VSCode PostgreSQL extension (optional DB management tool)
-
-Optionally, try this experimental automated project generator script: [dotnet-react-generator](https://github.com/mikey-t/dotnet-react-generator)
-
-Manual setup:
-- Clone repo
-- Run `npm run npmInstall` (runs npm install in project directory and in `./client`)
-- Run `swig ensureDotnetEfToolInstalled`
-- Run `swig configureDotnetDevCerts` (only required if you haven't run `dotnet dev-certs` recently - see https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs)
-- Run `swig syncEnvFiles` (or manually copy `.env.template` to `.env`)
-- Edit `.env` file with appropriate values for your local environment, especially paying attention to:
-  - PROJECT_NAME
-  - SITE_URL
-  - JWT_ISSUER - match to your SITE_URL
-  - COMPOSE_PROJECT_NAME - this affects the names of your docker containers and has restrictions for what characters can be used, so use lowercase alphanumeric with underscores
-  - DB_USER, DB_NAME - I usually set these to the same value for my local environment
-  - DB_NAME_TEST - this should be exactly the same as the DB_NAME but with prefixed with "test_" (this restriction will be lifted in the future)
-  - SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD - this account will get seeded so you can login immediately after the site comes up on your local machine
-- Ensure docker is running on your machine and then run `swig dockerUp`
-- Wait ~15 seconds for the PostgreSQL instance running in it's docker container to do first time initialization
-- Run `swig dbSetup`
-- Run `swig dbMigrate`
-- Create hosts entry (`C:\Windows\System32\drivers\etc\hosts` on windows) mapping `127.0.0.1` to `local.drs.mikeyt.net` (or whatever url you've set in `.env`)
-- Generate local self-signed ssl certificate (replace url with your own and be sure it matches your SITE_URL in your `.env` - recommend prefixing URL with "`local.`"): `swig generateCert local.drs.mikeyt.net`
-- Add cert to local trusted cert store (see [Certificate Install](#certificate-install) section below)
-- In 2 separate terminals, run
-  - `swig server`
-  - `swig client`
-- Navigate to https://local.drs.mikeyt.net:3000 (replace with whatever URL you've chosen and added to your `.env`)
-
-Optional:
-- Login with your super admin user - use the credentials you set in your `.env`
-- Setup a connection to your locally running database with PgAdmin or a VSCode extension by using `localhost` as the host and credentials from `DB_ROOT_USER` and `DB_ROOT_PASSWORD` from your `.env`
-- Run server unit tests: `swig testServer`
-
-Note that social logins (login with google and microsoft), google analytics and user registration using AWS SES won't work without additional setup. For setting up social logins, see [./SocialLogins.md](./SocialLogins.md).
+Then navigate to https://local.drs.mikeyt.net:3000 (or whatever url you've changed it to during your initial setup).
 
 ## Certificate Install
 
@@ -236,13 +349,17 @@ Also, I think some people use yarn because it's faster, but for most of my dev a
 
 ## React Client App
 
-Instead of create-react-app, I'm going with [vite](https://github.com/vitejs/vite). Create react app is convenient but ULTRA slow (HMR is kind of slow and production builds are just ridiculous). Vite has extremely fast HMR and production builds are sometimes 4 times faster than CRA. Vite is now very popular and has very good community support and a vast user base and a very nice plugin architecture for configuration and extensibility. You can build the entire app with `npx createRelease` in under 15 seconds 🚀. That's server, DbMigrations, vite react client - packaged up into a tarball ready for production. It used to take a few minutes because of create-react-app, so it's unlikely I'll ever switch back to CRA.
+Instead of create-react-app, I'm going with [vite](https://vitejs.dev/). Create react app is convenient but ULTRA slow (HMR is kind of slow and production builds are just ridiculous). Vite has extremely fast HMR and production builds are sometimes 4 times faster than CRA. Vite is now very popular and has very good community support and a vast user base and a very nice plugin architecture for configuration and extensibility. You can build the entire app with `npx createRelease` in under 15 seconds 🚀. That's server, DbMigrations, vite react client - packaged up into a tarball ready for production. It used to take a few minutes because of create-react-app, so it's unlikely I'll ever switch back to CRA.
 
 Vite also has excellent proxy support, which is vital to this project's setup. See config in `./client/vite.config.ts`.
 
 ## Deployment
 
-From this project in a terminal, run `swig createRelease`
+From this project in a terminal, run:
+
+```
+swig createRelease
+```
 
 Setting up the server and deploying files is out of scope for this project, but the example essentials you need on a linux server are:
 - Nginx setup and configured, including ssl and a virtual host pointing to where you copy and extract your app files
@@ -344,25 +461,6 @@ There are swig commands to change each thing related to the URL manually, but th
   - `JWT_ISSUER`
 - Run `swig setup nodb` or `swig dockerDown && swig setup`
 
-## Changelog
-
-### 2023-12-05 Updated project to work with new db-migrations-dotnet project and associated changes in swig-cli module DotnetReactSandbox
-
-- Replaced `DbMigrator` project with `DbMigrations` that was generated from the `swig swig dbBootstrapMigrationsProject` command
-- Updated node-cli-utils and swig-cli-modules versions to get new functionality
-- Removed a large chunk of swig commands that aren't needed anymore
-- Added the ability to specify hooks to docker and ef commands so that swig tasks are simpler (no need to chain every single command with `syncEnvFiles`)
-
-### 2023-09-18 Merged branch `new-directory-structure`
-
-- Completely new directory structure to further separate client and server source code and to allow easily creating separate VSCode workspaces for the client and server development
-- Ripped out gulp and replaced it with swig
-- Using new slightly altered commands for DB related actions using sub-commands to specify which db(s) and to pass migration names (see docs above)
-- Referenced a new beta version of NodeCliUtils (utilized in swigfile.ts)
-- Changed how docker-compose get's the project name (using env var COMPOSE_PROJECT_NAME instead of passing CLI param every time)
-- Removed root project dependencies that are no longer needed
-- Added eslint to client project and attempted to fix as many of the warnings as I could
-
 ## IDE - VSCode
 
 I previously preferred JetBrains IDEs (still do actually), but I also like staying with the herd, which I think is primarily using VSCode, so I've decided to switch over. Below are some misc notes on VSCode use.
@@ -380,18 +478,3 @@ This project is organized to take advantage of VSCodes workspaces so you can edi
 - `./client/drs-client.code-workspace`
 
 To take full advantage of these you need to open them as a workspace (`File` -> `open Workspace from file...`).
-
-## TODO
-
-- Test cert generation on mac/linux
-- Attempt to automate cert install on mac/linux
-- Add in vitest for client unit testing
-- More client code cleanup
-  - More permanent fixes for eslint warnings in the client project
-  - Research upgrading of social login dependencies to latest versions (some breaking changes there)
-  - Need a better client API accessor strategy (it was a good first attempt, but I think I can do a lot better)
-- Email/registration stuff:
-  - Documentation on how to set up registration with real email verification
-  - Functionality to enable/disable email verification functionality
-  - Alternate non-email functionality for registration for those that don't want to set that up for a small hobby project
-- Docker config/plumbing to generate a deployable image

@@ -6,9 +6,9 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build-solution",
-      "program": "${workspaceFolder}/src/WebServer/bin/Debug/net8.0/WebServer.dll",
+      "program": "${workspaceFolder}/server/src/WebServer/bin/Debug/net8.0/WebServer.dll",
       "args": [],
-      "cwd": "${workspaceFolder}/src/WebServer",
+      "cwd": "${workspaceFolder}/server/src/WebServer",
       "stopAtEntry": false,
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development"

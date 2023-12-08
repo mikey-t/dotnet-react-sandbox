@@ -8,7 +8,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/",
+        "${workspaceFolder}/server/",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],

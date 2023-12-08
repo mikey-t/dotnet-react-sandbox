@@ -47,3 +47,9 @@ Attaching to an already running instance of the API:
 
 - In VSCode, open command palette and type "attach". The relevant option is probably something like "Debug: Attach to a .NET 5+ or .NET Core process"
 - When it prompts you to select a process, find it by the executable name "WebServer.exe"
+
+Debugging the client app:
+
+- Start the API normally in the shell with `swig server`
+- Instead of starting the client with `swig client` (or `npm run dev` from client dir), use the launch configuration by hitting F5.
+  - If in the root solution, you may have to click into the "Run and Debug" left-pane and select the chrome launch task instead of the API launch task

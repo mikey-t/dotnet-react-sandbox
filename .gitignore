@@ -17,9 +17,4 @@ cert/*.crt
 cert/*.cnf
 **.pnp.*
 npm-debug.log*
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 orphanProtection.log

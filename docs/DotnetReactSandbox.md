@@ -461,6 +461,7 @@ There are swig commands to change each thing related to the URL manually, but th
   - `SITE_URL`
   - `JWT_ISSUER`
 - Run `swig setup nodb` or `swig dockerDown && swig setup`
+- Update vscode files `./.vscode/launch.json` and `./client/.vscode/launch.json` - change the url in the chrome launch configuration
 
 ## IDE - VSCode
 

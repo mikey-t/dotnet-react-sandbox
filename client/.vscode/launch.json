@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug react app in chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "https://local.drs.mikeyt.net:3000",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}

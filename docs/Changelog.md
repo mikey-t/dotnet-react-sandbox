@@ -1,11 +1,16 @@
 ## Dotnet React Sandbox Changelog
 
-### 2023-12-16
+### 2023-12-07
 
 Upgrade dependency versions.
 
-- Pinned NodeJS to 20 for root and client project
-- Upgraded vite to 5.x
+- Pinned NodeJS to version 20 for root and client app projects
+- Upgraded client app vite version to 5.x
+- Upgraded .net from 6 to 8 for the WebServer and WebServer.Test projects
+- Upgrade PasswordLogic hashing algorithm. Note that if you move these changes into an existing DRS implementation project with real users, you will need to carefully plan out how to migrate users to the new hash, for examples:
+  - Keep the old logic around so you have V1 and V2 versions. On login failure, check with old hash and if it passes, upgrade hash and save to account record. Ensure all users get their hash upgraded (keep track of what user's have had their hash upgraded, for example with a new column like "hash_version").
+  - OR force user's to change their passwords and use something similar to the registration logic where they will have to click a link in their email and come though a mandatory password change/set page.
+  - OR something else - just don't change the PasswordLogic hashing algorithm without a plan.
 
 ### 2023-12-05
 

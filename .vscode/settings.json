@@ -13,6 +13,8 @@
   "typescript.format.semicolons": "remove",
   "cSpell.words": [
     "appbar",
-    "nodb"
+    "Hmac",
+    "nodb",
+    "SYSLIB"
   ]
 }

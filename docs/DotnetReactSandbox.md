@@ -26,6 +26,7 @@ This is a combination of a playground for trying new ideas as well as a referenc
 - Manage primary and test databases on a dev machine simultaneously with simply centralized shell commands
 - VSCode workspaces for separate client and server work (optional)
 - Dapper for data access (EF is only used for database migrations)
+- XUnit test project for the backend API
 - Misc react client starter code and features:
   - Material UI
   - React router

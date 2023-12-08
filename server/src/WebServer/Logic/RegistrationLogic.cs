@@ -32,17 +32,17 @@ public class RegistrationLogic : IRegistrationLogic
 
     private readonly ILogger _logger;
     private readonly IAccountRepository _accountRepo;
-    private readonly IPasswordLogic _passwordLogic;
+    private readonly IPasswordLogicV2 _passwordLogicV2;
     private readonly IEmailSender _emailSender;
     private readonly IEnvironmentSettings _envSettings;
     private readonly ILoginLogic _loginLogic;
 
-    public RegistrationLogic(ILogger<RegistrationLogic> logger, IAccountRepository accountRepo, IPasswordLogic passwordLogic, IEmailSender emailSender,
+    public RegistrationLogic(ILogger<RegistrationLogic> logger, IAccountRepository accountRepo, IPasswordLogicV2 passwordLogic, IEmailSender emailSender,
         IEnvironmentSettings envSettings, ILoginLogic loginLogic)
     {
         _logger = logger;
         _accountRepo = accountRepo;
-        _passwordLogic = passwordLogic;
+        _passwordLogicV2 = passwordLogic;
         _emailSender = emailSender;
         _envSettings = envSettings;
         _loginLogic = loginLogic;
@@ -74,7 +74,7 @@ public class RegistrationLogic : IRegistrationLogic
         var registration = await _accountRepo.AddRegistration(new Registration
         {
             Email = email,
-            Password = _passwordLogic.GetPasswordHash(req.Password),
+            Password = _passwordLogicV2.GetPasswordHash(req.Password),
             FirstName = req.FirstName,
             LastName = req.LastName,
             VerificationCode = Guid.NewGuid(),

@@ -39,16 +39,23 @@ public class LoginLogic : ILoginLogic
     private readonly Serilog.ILogger _logger;
     private readonly IEnvironmentSettings _environmentSettings;
     private readonly IAccountRepository _accountRepository;
-    private readonly IPasswordLogic _passwordLogic;
+    private readonly IPasswordLogicV1 _passwordLogicV1;
+    private readonly IPasswordLogicV2 _passwordLogicV2;
     private readonly IGoogleLoginWrapper _googleLoginWrapper;
 
-    public LoginLogic(Serilog.ILogger logger, IEnvironmentSettings environmentSettings, IAccountRepository accountRepository,
-        IPasswordLogic passwordLogic, IGoogleLoginWrapper googleLoginWrapper)
+    public LoginLogic(
+        Serilog.ILogger logger,
+        IEnvironmentSettings environmentSettings,
+        IAccountRepository accountRepository,
+        IPasswordLogicV1 passwordLogicV1,
+        IPasswordLogicV2 passwordLogicV2,
+        IGoogleLoginWrapper googleLoginWrapper)
     {
         _logger = logger;
         _environmentSettings = environmentSettings;
         _accountRepository = accountRepository;
-        _passwordLogic = passwordLogic;
+        _passwordLogicV1 = passwordLogicV1;
+        _passwordLogicV2 = passwordLogicV2;
         _googleLoginWrapper = googleLoginWrapper;
     }
 
@@ -58,7 +65,10 @@ public class LoginLogic : ILoginLogic
             Log.ForContext<LoginLogic>(),
             envSettings,
             new AccountRepository(new ConnectionStringProvider(envSettings), envSettings),
-            new PasswordLogic(),
+#pragma warning disable 0618
+            new PasswordLogicV1(),
+#pragma warning restore 0618
+            new PasswordLogicV2(),
             new GoogleLoginWrapper());
     }
 
@@ -101,7 +111,7 @@ public class LoginLogic : ILoginLogic
         }
 
         var normalizedEmail = EmailLogic.NormalizeEmail(googleJwtResponse.Email);
-        
+
         if (!await IsWhitelisted(normalizedEmail))
         {
             throw new ThirdPartyLoginException("Email is not on the approved list");
@@ -158,7 +168,7 @@ public class LoginLogic : ILoginLogic
         }
 
         var normalizedEmail = EmailLogic.NormalizeEmail(email);
-        
+
         if (!await IsWhitelisted(normalizedEmail))
         {
             throw new ThirdPartyLoginException("Email is not on the approved list");
@@ -181,16 +191,16 @@ public class LoginLogic : ILoginLogic
     {
         var normalizedEmail = EmailLogic.NormalizeEmail(_environmentSettings.GetString(GlobalSettings.SUPER_ADMIN_EMAIL));
         var password = _environmentSettings.GetString(GlobalSettings.SUPER_ADMIN_PASSWORD);
-    
+
         var existingAccount = await _accountRepository.GetAccountByEmail(normalizedEmail);
-    
+
         if (existingAccount != null) return;
-    
+
         _logger.Information("super admin account does not exist - attempting to seed");
-    
-        var hashedPassword = _passwordLogic.GetPasswordHash(password);
+
+        var hashedPassword = _passwordLogicV2.GetPasswordHash(password);
         await _accountRepository.AddAccount(new Account(normalizedEmail, hashedPassword, new List<string> { Role.USER.ToString(), Role.SUPER_ADMIN.ToString() }));
-    
+
         _logger.Information("seeded admin account");
     }
 
@@ -202,7 +212,7 @@ public class LoginLogic : ILoginLogic
         {
             return null;
         }
-        
+
         var account = await _accountRepository.GetAccountByEmail(normalizedEmail);
 
         if (account == null)
@@ -211,8 +221,16 @@ public class LoginLogic : ILoginLogic
             return null;
         }
 
-        if (!_passwordLogic.PasswordIsValid(loginRequest.Password, account.Password ?? ""))
+        if (!_passwordLogicV2.PasswordIsValid(loginRequest.Password, account.Password ?? ""))
         {
+            if (_passwordLogicV1.PasswordIsValid(loginRequest.Password, account.Password ?? ""))
+            {
+                _logger.Warning("account exists for email {Email} but password is using old hash - updating to new hash", normalizedEmail);
+                var newHash = _passwordLogicV2.GetPasswordHash(loginRequest.Password);
+                await _accountRepository.UpdatePassword(account.Id, newHash);
+                return account;
+            }
+
             _logger.Warning("account exists for email {Email} but password is invalid", normalizedEmail);
             return null;
         }

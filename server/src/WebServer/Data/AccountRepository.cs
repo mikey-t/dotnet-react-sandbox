@@ -23,6 +23,7 @@ public interface IAccountRepository
     Task RemoveFromLoginWhiteList(string email);
     Task<bool> IsOnLoginWhitelist(string email);
     Task<List<string>> GetLoginWhitelist();
+    Task UpdatePassword(long accountId, string passwordHash);
 }
 
 public class AccountRepository : BaseRepository, IAccountRepository
@@ -87,7 +88,7 @@ public class AccountRepository : BaseRepository, IAccountRepository
         {
             return null;
         }
-        account.Roles = (await connection.QueryAsync<string>("select role from account_role where account_id = @AccountId", new {AccountId = account.Id})).ToList();
+        account.Roles = (await connection.QueryAsync<string>("select role from account_role where account_id = @AccountId", new { AccountId = account.Id })).ToList();
         return account;
     }
 
@@ -173,21 +174,21 @@ public class AccountRepository : BaseRepository, IAccountRepository
     {
         await using var connection = await GetConnection();
         var normalizedEmail = EmailLogic.NormalizeEmail(email);
-        await connection.ExecuteAsync("insert into login_whitelist (email) values (@Email)", new {Email = normalizedEmail});
+        await connection.ExecuteAsync("insert into login_whitelist (email) values (@Email)", new { Email = normalizedEmail });
     }
 
     public async Task RemoveFromLoginWhiteList(string email)
     {
         await using var connection = await GetConnection();
         var normalizedEmail = EmailLogic.NormalizeEmail(email);
-        await connection.ExecuteAsync("delete from login_whitelist where email = @Email", new {Email = normalizedEmail});
+        await connection.ExecuteAsync("delete from login_whitelist where email = @Email", new { Email = normalizedEmail });
     }
 
     public async Task<bool> IsOnLoginWhitelist(string email)
     {
         await using var connection = await GetConnection();
         var normalizedEmail = EmailLogic.NormalizeEmail(email);
-        var result = await connection.QuerySingleOrDefaultAsync("select email from login_whitelist where email = @Email", new {Email = normalizedEmail});
+        var result = await connection.QuerySingleOrDefaultAsync("select email from login_whitelist where email = @Email", new { Email = normalizedEmail });
         return result != null;
     }
 
@@ -196,5 +197,11 @@ public class AccountRepository : BaseRepository, IAccountRepository
         await using var connection = await GetConnection();
         var results = await connection.QueryAsync<string>("select email from login_whitelist");
         return results.ToList();
+    }
+
+    public async Task UpdatePassword(long accountId, string passwordHash)
+    {
+        await using var connection = await GetConnection();
+        await connection.ExecuteAsync("update account set password = @Password where id = @Id", new { Password = passwordHash, Id = accountId });
     }
 }

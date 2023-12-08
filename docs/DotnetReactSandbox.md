@@ -165,7 +165,7 @@ First ensure you have all the [Setup Requirements](#setup-requirements) setup re
   - JWT_ISSUER - match to your SITE_URL
   - COMPOSE_PROJECT_NAME - this affects the names of your docker containers and has character restrictions, so only use lowercase alphanumeric with underscores
   - DB_USER, DB_NAME - I usually set these to the same value for my local environment
-  - DB_NAME_TEST - this should be exactly the same as the DB_NAME but with prefixed with "test_" (this restriction will be lifted in the future)
+  - DB_NAME_TEST - Use the same value as DB_NAME but with the prefix "test_"
   - SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD - this account will get seeded so you can login immediately after the site comes up on your local machine
 - Ensure docker is running on your machine and then run `swig dockerUp`
 - Wait ~15 seconds for the PostgreSQL instance running in it's docker container to do first time initialization

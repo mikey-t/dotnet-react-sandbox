@@ -19,9 +19,9 @@ namespace WebServer
 
         [SettingInfo(DefaultValue = "drs", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]
         DB_NAME,
-        
-        [SettingInfo(DefaultValue = "test_", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]
-        DB_NAME_TEST_PREFIX,
+
+        [SettingInfo(DefaultValue = "test_drs", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]
+        DB_NAME_TEST,
         
         [SettingInfo(DefaultValue = "drs.mikeyt.net", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments, ShouldLogValue = true)]
         JWT_ISSUER,

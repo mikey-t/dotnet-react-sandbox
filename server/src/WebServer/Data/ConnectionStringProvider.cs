@@ -5,16 +5,18 @@ namespace WebServer.Data;
 public interface IConnectionStringProvider
 {
     string GetConnectionString(string dbName, string host, string port, string userId, string password);
-    string GetConnectionString(string dbName);
+    string GetConnectionString();
 }
 
 public class ConnectionStringProvider : IConnectionStringProvider
 {
+    private readonly bool _useTestDb;
     private readonly IEnvironmentSettings _envSettings;
 
-    public ConnectionStringProvider(IEnvironmentSettings envSettings)
+    public ConnectionStringProvider(IEnvironmentSettings envSettings, bool useTestDb = false)
     {
         _envSettings = envSettings;
+        _useTestDb = useTestDb;
     }
 
     public string GetConnectionString(string dbName, string host, string port, string userId, string password)
@@ -29,8 +31,9 @@ public class ConnectionStringProvider : IConnectionStringProvider
         return connectionString;
     }
 
-    public string GetConnectionString(string dbName)
+    public string GetConnectionString()
     {
+        var dbName = _useTestDb ? _envSettings.GetString(GlobalSettings.DB_NAME_TEST) : _envSettings.GetString(GlobalSettings.DB_NAME);
         var host = _envSettings.GetString(GlobalSettings.DB_HOST);
         var port = _envSettings.GetString(GlobalSettings.DB_PORT);
         var user = _envSettings.GetString(GlobalSettings.DB_USER);

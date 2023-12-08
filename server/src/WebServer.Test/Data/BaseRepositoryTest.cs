@@ -15,8 +15,8 @@ public class BaseRepositoryTest
     {
         DotEnv.Load();
         EnvironmentSettings = new EnvironmentSettings(new DefaultEnvironmentVariableProvider(), new DefaultSecretVariableProvider());
-        EnvironmentSettings.AddSettings<TestSettings>();
-        ConnectionStringProvider = new ConnectionStringProvider(EnvironmentSettings);
+        EnvironmentSettings.AddSettings<GlobalSettings>();
+        ConnectionStringProvider = new ConnectionStringProvider(EnvironmentSettings, true);
         var createTestAccountsResult = TestHelper.EnsureDefaultTestAccounts(new AccountRepository(ConnectionStringProvider, EnvironmentSettings)).GetAwaiter().GetResult();
         DefaultAccountId = createTestAccountsResult.DefaultId;
         AltAccountId = createTestAccountsResult.AltId;

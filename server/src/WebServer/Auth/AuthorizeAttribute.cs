@@ -32,7 +32,7 @@ public class AuthorizeAttribute : Attribute, IAuthorizationFilter
             return;
         }
 
-        var account = (Account?)context.HttpContext?.Items?[GlobalConstants.CONTEXT_ACCOUNT_KEY];
+        var account = (Account?)context.HttpContext?.Items?[GlobalConstants.HTTP_CONTEXT_ACCOUNT_KEY];
 
         if (account == null)
         {

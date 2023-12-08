@@ -51,7 +51,7 @@ public class JwtMiddleware
 
             // Attach user to context on successful jwt validation
             var user = await accountRepository.GetAccountById(userId);
-            context.Items[GlobalConstants.CONTEXT_ACCOUNT_KEY] = user;
+            context.Items[GlobalConstants.HTTP_CONTEXT_ACCOUNT_KEY] = user;
         }
         catch (Exception ex)
         {

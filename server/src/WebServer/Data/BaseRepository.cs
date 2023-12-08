@@ -13,12 +13,13 @@ public class BaseRepository
     {
         DefaultTypeMap.MatchNamesWithUnderscores = true;
         SqlMapper.AddTypeHandler(new DateTimeHandler());
-        ConnectionString = connectionStringProvider.GetConnectionString(environmentSettings.GetString(GlobalSettings.DB_NAME));
+        ConnectionString = connectionStringProvider.GetConnectionString();
     }
 
     public string GetConnectionString()
     {
-        if (!ConnectionString.Contains("Database=test_"))
+        var testDbName = Environment.GetEnvironmentVariable(GlobalSettings.DB_NAME_TEST.ToString());
+        if (!ConnectionString.Contains($"Database={testDbName};"))
         {
             throw new ApplicationException("ConnectionString is only available outside the repository class when testing");
         }

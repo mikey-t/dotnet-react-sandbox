@@ -59,9 +59,9 @@ public class PasswordLogicV2 : IPasswordLogicV2
         using var pbkdf2 = new Rfc2898DeriveBytes(password, saltBytes, HASH_ITERATIONS, HashAlgorithmName.SHA256);
         var hashBytes = pbkdf2.GetBytes(HASH_SIZE);
 
-        if (hashBytes.Length != HASH_SIZE)
+        if (hashWithSaltBytes.Length != SALT_SIZE + HASH_SIZE)
         {
-            throw new InvalidOperationException("Invalid hash length.");
+            return false;
         }
 
         byte[] storedHashBytes = new byte[HASH_SIZE];
@@ -69,6 +69,7 @@ public class PasswordLogicV2 : IPasswordLogicV2
 
         return CryptographicOperations.FixedTimeEquals(storedHashBytes, hashBytes);
     }
+
 }
 
 [Obsolete("Use PasswordLogicV2. This can be deleted once all users have their hash converted to V2.")]

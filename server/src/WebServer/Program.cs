@@ -67,10 +67,7 @@ try
 
     builder.Services.AddSingleton<IEnvironmentSettings>(envSettings);
     builder.Services.AddSingleton<IConnectionStringProvider, ConnectionStringProvider>();
-    builder.Services.AddSingleton<IPasswordLogicV2>(new PasswordLogicV2());
-#pragma warning disable 0618
-    builder.Services.AddSingleton<IPasswordLogicV1>(new PasswordLogicV1());
-#pragma warning restore 0618
+    builder.Services.AddSingleton<IPasswordLogic>(new PasswordLogic());
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();
     builder.Services.AddScoped<ILoginLogic, LoginLogic>();
     builder.Services.AddHttpContextAccessor();

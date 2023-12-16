@@ -39,22 +39,19 @@ public class LoginLogic : ILoginLogic
     private readonly Serilog.ILogger _logger;
     private readonly IEnvironmentSettings _environmentSettings;
     private readonly IAccountRepository _accountRepository;
-    private readonly IPasswordLogicV1 _passwordLogicV1;
-    private readonly IPasswordLogicV2 _passwordLogicV2;
+    private readonly IPasswordLogic _passwordLogicV2;
     private readonly IGoogleLoginWrapper _googleLoginWrapper;
 
     public LoginLogic(
         Serilog.ILogger logger,
         IEnvironmentSettings environmentSettings,
         IAccountRepository accountRepository,
-        IPasswordLogicV1 passwordLogicV1,
-        IPasswordLogicV2 passwordLogicV2,
+        IPasswordLogic passwordLogicV2,
         IGoogleLoginWrapper googleLoginWrapper)
     {
         _logger = logger;
         _environmentSettings = environmentSettings;
         _accountRepository = accountRepository;
-        _passwordLogicV1 = passwordLogicV1;
         _passwordLogicV2 = passwordLogicV2;
         _googleLoginWrapper = googleLoginWrapper;
     }
@@ -65,10 +62,7 @@ public class LoginLogic : ILoginLogic
             Log.ForContext<LoginLogic>(),
             envSettings,
             new AccountRepository(new ConnectionStringProvider(envSettings), envSettings),
-#pragma warning disable 0618
-            new PasswordLogicV1(),
-#pragma warning restore 0618
-            new PasswordLogicV2(),
+            new PasswordLogic(),
             new GoogleLoginWrapper());
     }
 
@@ -223,14 +217,6 @@ public class LoginLogic : ILoginLogic
 
         if (!_passwordLogicV2.PasswordIsValid(loginRequest.Password, account.Password ?? ""))
         {
-            if (_passwordLogicV1.PasswordIsValid(loginRequest.Password, account.Password ?? ""))
-            {
-                _logger.Warning("account exists for email {Email} but password is using old hash - updating to new hash", normalizedEmail);
-                var newHash = _passwordLogicV2.GetPasswordHash(loginRequest.Password);
-                await _accountRepository.UpdatePassword(account.Id, newHash);
-                return account;
-            }
-
             _logger.Warning("account exists for email {Email} but password is invalid", normalizedEmail);
             return null;
         }

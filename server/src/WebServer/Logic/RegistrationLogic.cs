@@ -32,12 +32,12 @@ public class RegistrationLogic : IRegistrationLogic
 
     private readonly ILogger _logger;
     private readonly IAccountRepository _accountRepo;
-    private readonly IPasswordLogicV2 _passwordLogicV2;
+    private readonly IPasswordLogic _passwordLogicV2;
     private readonly IEmailSender _emailSender;
     private readonly IEnvironmentSettings _envSettings;
     private readonly ILoginLogic _loginLogic;
 
-    public RegistrationLogic(ILogger<RegistrationLogic> logger, IAccountRepository accountRepo, IPasswordLogicV2 passwordLogic, IEmailSender emailSender,
+    public RegistrationLogic(ILogger<RegistrationLogic> logger, IAccountRepository accountRepo, IPasswordLogic passwordLogic, IEmailSender emailSender,
         IEnvironmentSettings envSettings, ILoginLogic loginLogic)
     {
         _logger = logger;

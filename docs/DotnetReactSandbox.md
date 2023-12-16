@@ -375,7 +375,9 @@ I happen to have my own automated script that does the following (you could crea
 
 ## Swagger
 
-Access swagger UI at http://localhost:5001/api or the json at http://localhost:5001/swagger/v1/swagger.json (replace 5001 with your port if you changed it).
+Access swagger UI at https://localhost:5001/api or the json at https://localhost:5001/swagger/v1/swagger.json (replace 5001 with your port if you changed it).
+
+**Note:** it must be `https` and not `http`.
 
 ## Other Docs
 

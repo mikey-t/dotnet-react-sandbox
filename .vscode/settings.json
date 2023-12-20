@@ -7,6 +7,12 @@
     "editor.autoIndent": "full",
     "editor.trimAutoWhitespace": false
   },
+  "[json]": {
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.tabSize": 2
+  },
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",
   "javascript.format.semicolons": "remove",

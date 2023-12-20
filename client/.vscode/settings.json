@@ -1,11 +1,17 @@
 {
   "[typescript]": {
     "editor.autoIndent": "full",
-    "editor.trimAutoWhitespace": false
+    "editor.trimAutoWhitespace": false,
+    "typescript.preferences.quoteStyle": "single"
   },
   "[javascript]": {
     "editor.autoIndent": "full",
-    "editor.trimAutoWhitespace": false
+    "editor.trimAutoWhitespace": false,
+    "javascript.preferences.quoteStyle": "single"
+  },
+  "[typescriptreact]": {
+    "editor.tabSize": 2,
+    "typescript.preferences.importModuleSpecifier": "relative"
   },
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",

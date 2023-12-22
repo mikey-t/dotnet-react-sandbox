@@ -1,9 +1,10 @@
+import PageTitle from '../components/PageTitle'
+
 export default function ContentPolicy() {
   return (
-    <>
-      <h2>Content Policy</h2>
+    <div>
+      <PageTitle>Content Policy</PageTitle>
       <p>Last Updated: ...</p>
-    </>
-
+    </div>
   )
 }

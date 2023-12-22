@@ -1,11 +1,10 @@
+import PageTitle from '../components/PageTitle'
+
 export default function Privacy() {
   return (
-    <>
-      <h2>Privacy Policy</h2>
+    <div>
+      <PageTitle>Privacy Policy</PageTitle>
       <p>Last Updated: ...</p>
-
-      <h3>Overview</h3>
-      <p>...</p>
-    </>
+    </div>
   )
 }

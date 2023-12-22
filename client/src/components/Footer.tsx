@@ -1,30 +1,37 @@
-import * as React from 'react'
 import Copyright from './Copyright'
-import { Box } from '@mui/material'
 import Button from '@mui/material/Button'
-import { Link } from 'react-router-dom'
+import Box from '@mui/material/Box/Box'
+import Link from '@mui/material/Link/Link'
+import { PageNavInfo } from '../model/PageNavInfo'
+
+const links: PageNavInfo[] = [
+  {
+    title: 'Privacy',
+    location: '/privacy'
+  },
+  {
+    title: 'Terms',
+    location: '/terms'
+  },
+  {
+    title: 'Content Policy',
+    location: '/content-policy'
+  },
+]
 
 export default function Footer() {
   return (
-    <footer>
+    <Box component="footer" sx={{ py: 0.5, px: 2 }}>
       <Copyright />
       <Box sx={{ justifyContent: 'center', display: 'flex' }}>
         <Box>
-          <Link to="privacy" style={{ textDecoration: "none", color: "inherit" }}>
-            <Button size='small' sx={{ color: 'dimgrey', textTransform: 'none', }}>Privacy</Button>
-          </Link>
-          <Link to="/terms" style={{ textDecoration: "none", color: "inherit" }}>
-            <Button size='small' sx={{ color: 'dimgrey', textTransform: 'none', }}>Terms</Button>
-          </Link>
-          <Link to="/content" style={{ textDecoration: "none", color: "inherit" }}>
-            <Button size='small' sx={{ color: 'dimgrey', textTransform: 'none', }}>Content Policy</Button>
-          </Link>
-
+          {links.map((link, idx) => (
+            <Link key={idx} href={link.location} sx={{ textDecoration: "none", color: "inherit" }}>
+              <Button size='small' sx={{ color: 'dimgrey', textTransform: 'none', }}>{link.title}</Button>
+            </Link>
+          ))}&nbsp;
         </Box>
-
       </Box>
-    </footer>
+    </Box>
   )
 }
-
-

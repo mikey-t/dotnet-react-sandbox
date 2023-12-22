@@ -1,15 +1,12 @@
 import CssBaseline from '@mui/material/CssBaseline'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import Home from './pages/Home'
 import MainLayout from './layout/MainLayout'
-import NotFound from './pages/NotFound'
 import Products from './pages/Products'
 import Pricing from './pages/Pricing'
 import Blog from './pages/Blog'
 import Account from './pages/protected/Account'
-import RequireAuth from './components/auth/RequireAuth'
-import RequireNotAuth from './components/auth/RequireNotAuth'
 import Login from './pages/auth/Login'
 import SignUp from './pages/auth/SignUp'
 import RegisterWithEmail from './pages/auth/RegisterWithEmail'
@@ -23,7 +20,6 @@ import ContentPolicy from './pages/ContentPolicy'
 import GoogleAnalytics from './components/GoogleAnalytics'
 import { SnackbarProvider } from 'notistack'
 import Logout from './pages/auth/Logout'
-import { AuthProvider } from './components/auth/AuthProvider'
 import AdminLayout from './layout/AdminLayout'
 import AdminHome from './pages/admin/AdminHome'
 import Users from './pages/admin/Users'
@@ -32,53 +28,66 @@ import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
+import ErrorPage from './pages/ErrorPage'
+import { authProvider } from './auth'
+import { routes } from './routes'
+import { Link as RouterLink, LinkProps as RouterLinkProps } from 'react-router-dom'
+import { LinkProps } from '@mui/material/Link'
+import React from 'react'
+import LinkBehavior from './components/LinkBehavior'
+import { theme } from './theme'
 
-const theme = createTheme({
-  palette: {
-    mode: 'dark'
-  }
-})
+const router = createBrowserRouter(routes)
 
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        {/*<GoogleAnalytics>*/}
-        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'left', }} autoHideDuration={1500}>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<MainLayout />}>
-                <Route index element={<Home />} />
-                <Route path="/login" element={<RequireNotAuth><Login /></RequireNotAuth>} />
-                <Route path="/sign-up" element={<RequireNotAuth><SignUp /></RequireNotAuth>} />
-                <Route path="/register" element={<RequireNotAuth><RegisterWithEmail /></RequireNotAuth>} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/register-next" element={<RequireNotAuth><RegisterNext /></RequireNotAuth>} />
-                <Route path="/register-resend-email" element={<RequireNotAuth><RegisterResendEmail /></RequireNotAuth>} />
-                <Route path="/privacy" element={<Privacy />} />
-                <Route path="/terms" element={<Terms />} />
-                <Route path="/content" element={<ContentPolicy />} />
-                <Route path="/products" element={<Products />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-              <Route path="/admin" element={<RequireAuth role="SUPER_ADMIN"><AdminLayout /></RequireAuth>}>
-                <Route index element={<AdminHome />} />
-                <Route path="/admin/users" element={<Users />} />
-                <Route path="/admin/whitelist" element={<Whitelist />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-              <Route path="/logout" element={<Logout />} />
-            </Routes>
-          </AuthProvider>
-        </SnackbarProvider>
-        {/*</GoogleAnalytics>*/}
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </ThemeProvider>
   )
 }
+
+// function App() {
+//   return (
+//     <ThemeProvider theme={theme}>
+//       <CssBaseline />
+//       <BrowserRouter>
+//         {/*<GoogleAnalytics>*/}
+//         <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'bottom', horizontal: 'left', }} autoHideDuration={1500}>
+//           <AuthProvider>
+//             <Routes>
+//               <Route path="/" element={<MainLayout />}>
+//                 <Route index element={<Home />} />
+//                 <Route path="/login" element={<RequireNotAuth><Login /></RequireNotAuth>} />
+//                 <Route path="/sign-up" element={<RequireNotAuth><SignUp /></RequireNotAuth>} />
+//                 <Route path="/register" element={<RequireNotAuth><RegisterWithEmail /></RequireNotAuth>} />
+//                 <Route path="/verify-email" element={<VerifyEmail />} />
+//                 <Route path="/register-next" element={<RequireNotAuth><RegisterNext /></RequireNotAuth>} />
+//                 <Route path="/register-resend-email" element={<RequireNotAuth><RegisterResendEmail /></RequireNotAuth>} />
+//                 <Route path="/privacy" element={<Privacy />} />
+//                 <Route path="/terms" element={<Terms />} />
+//                 <Route path="/content" element={<ContentPolicy />} />
+//                 <Route path="/products" element={<Products />} />
+//                 <Route path="/pricing" element={<Pricing />} />
+//                 <Route path="/blog" element={<Blog />} />
+//                 <Route path="/account" element={<RequireAuth><Account /></RequireAuth>} />
+//                 <Route path="*" element={<NotFound />} />
+//               </Route>
+//               <Route path="/admin" element={<RequireAuth role="SUPER_ADMIN"><AdminLayout /></RequireAuth>}>
+//                 <Route index element={<AdminHome />} />
+//                 <Route path="/admin/users" element={<Users />} />
+//                 <Route path="/admin/whitelist" element={<Whitelist />} />
+//                 <Route path="*" element={<NotFound />} />
+//               </Route>
+//               <Route path="/logout" element={<Logout />} />
+//             </Routes>
+//           </AuthProvider>
+//         </SnackbarProvider>
+//         {/*</GoogleAnalytics>*/}
+//       </BrowserRouter>
+//     </ThemeProvider>
+//   )
+// }
 
 export default App

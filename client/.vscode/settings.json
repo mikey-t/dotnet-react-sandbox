@@ -2,16 +2,24 @@
   "[typescript]": {
     "editor.autoIndent": "full",
     "editor.trimAutoWhitespace": false,
-    "typescript.preferences.quoteStyle": "single"
+    "typescript.preferences.quoteStyle": "single",
+    "editor.tabSize": 2
   },
   "[javascript]": {
     "editor.autoIndent": "full",
     "editor.trimAutoWhitespace": false,
-    "javascript.preferences.quoteStyle": "single"
+    "javascript.preferences.quoteStyle": "single",
+    "editor.tabSize": 2
   },
   "[typescriptreact]": {
     "editor.tabSize": 2,
     "typescript.preferences.importModuleSpecifier": "relative"
+  },
+  "[json]": {
+    "editor.tabSize": 2
+  },
+  "[yaml]": {
+    "editor.tabSize": 2
   },
   "javascript.preferences.quoteStyle": "single",
   "typescript.preferences.quoteStyle": "single",

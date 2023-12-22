@@ -1,13 +1,16 @@
 ﻿import { useState } from 'react'
 import Button from '@mui/material/Button'
+import Box from '@mui/material/Box/Box'
+import Link from '@mui/material/Link/Link'
+import PageTitle from '../components/PageTitle'
 
 export default function Home() {
   return (
-    <div>
-      <h1>Home</h1>
-
+    <Box>
+      <PageTitle>Home</PageTitle>
+      <p>This is a <Link href="/test-link">test link</Link> that goes nowhere.</p>
       <ApiTestWidget />
-    </div>
+    </Box>
   )
 }
 
@@ -33,14 +36,14 @@ function ApiTestWidget() {
   }
 
   return (
-    <>
+    <Box>
       <Button variant="outlined" color="inherit" onClick={getForecasts}>Get Random Forecasts</Button><br />
       {forecasts.length > 0 && <div>
         {forecasts.map((f, i) => {
           return <p key={i}>{JSON.stringify(f)}</p>
         })}
       </div>}
-    </>
+    </Box>
   )
 }
 

@@ -7,7 +7,7 @@ export default function Copyright() {
     <Box sx={{ pt: '1rem' }}>
       <Typography variant="body2" color="text.secondary" align="center">
         {'Copyright © '}
-        <Link color="inherit" href="https://mikeyt.net" target="_blank">
+        <Link color="inherit" href="https://mikeyt.net" target="_blank" rel="noopener">
           Mike Thompson
         </Link>{' '}
         {new Date().getFullYear()}

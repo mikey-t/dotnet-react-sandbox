@@ -1,11 +1,12 @@
+import PageTitle from '../components/PageTitle'
+
 export default function Terms() {
   return (
-    <>
-      <h2>Terms of Service</h2>
+    <div>
+      <PageTitle>Terms of Service</PageTitle>
       <p>
         Last Updated: ...
       </p>
-      ...
-    </>
+    </div>
   )
 }

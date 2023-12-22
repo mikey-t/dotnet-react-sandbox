@@ -1,4 +1,4 @@
-import { RouteObject } from 'react-router-dom'
+import { RouteObject, createBrowserRouter } from 'react-router-dom'
 import MainLayout from './layout/MainLayout'
 import { rootLoader } from './loaders/rootLoader'
 import Blog from './pages/Blog'
@@ -10,7 +10,7 @@ import Privacy from './pages/Privacy'
 import Products from './pages/Products'
 import Terms from './pages/Terms'
 
-export const routes: RouteObject[] = [
+const routes: RouteObject[] = [
   {
     path: '/',
     id: 'root',
@@ -52,3 +52,5 @@ export const routes: RouteObject[] = [
     }]
   }
 ]
+
+export const router = createBrowserRouter(routes)

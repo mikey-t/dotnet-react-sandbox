@@ -12,10 +12,14 @@ import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import MenuItem from '@mui/material/MenuItem'
 import CameraIcon from '@mui/icons-material/Camera'
-import { useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from './auth/AuthProvider'
 import { PageNavInfo } from '../model/PageNavInfo'
 import Link from '@mui/material/Link/Link'
+
+// TODO:
+// - Responsive version
+// - Auth functionality
 
 const pages: PageNavInfo[] = [
   {
@@ -36,14 +40,28 @@ export default function NavBar() {
   return (
     <AppBar position="static">
       <Container maxWidth="lg" disableGutters>
-        <Toolbar>
+        <Toolbar component="nav">
           <SiteName />
-          <Box sx={{ pl: '1rem', flexGrow: 1 }}>
-            {pages.map((page, idx) =>
-            (<Link key={idx} href={page.location}>
-              <Button>{page.title}</Button>
-            </Link>)
-            )}
+          <Box sx={{ pl: '1rem', flexGrow: 1 }} id="nav-links">
+            {
+              pages.map((page, idx) => (
+                <NavLink
+                  key={idx}
+                  to={page.location}
+                  className={({ isActive, isPending }) =>
+                    isPending ? "pending" : isActive ? "active" : ""
+                  }
+                >
+                  {({ isActive }) => (
+                    <Button
+                      variant={isActive ? "outlined" : "text"}
+                    >
+                      {page.title}
+                    </Button>
+                  )}
+                </NavLink>
+              ))
+            }
           </Box>
           <Button>Login</Button>
         </Toolbar>

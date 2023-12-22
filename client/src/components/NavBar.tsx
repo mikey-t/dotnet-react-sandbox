@@ -1,25 +1,20 @@
-import * as React from 'react'
+import CameraIcon from '@mui/icons-material/Camera'
+import MenuIcon from '@mui/icons-material/Menu'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
-import Toolbar from '@mui/material/Toolbar'
-import IconButton from '@mui/material/IconButton'
-import Typography from '@mui/material/Typography'
-import Menu from '@mui/material/Menu'
-import MenuIcon from '@mui/icons-material/Menu'
-import Container from '@mui/material/Container'
-import Avatar from '@mui/material/Avatar'
 import Button from '@mui/material/Button'
-import Tooltip from '@mui/material/Tooltip'
-import MenuItem from '@mui/material/MenuItem'
-import CameraIcon from '@mui/icons-material/Camera'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { useAuth } from './auth/AuthProvider'
-import { PageNavInfo } from '../model/PageNavInfo'
+import Container from '@mui/material/Container'
+import IconButton from '@mui/material/IconButton/IconButton'
 import Link from '@mui/material/Link/Link'
-
-// TODO:
-// - Responsive version
-// - Auth functionality
+import Menu from '@mui/material/Menu/Menu'
+import MenuItem from '@mui/material/MenuItem/MenuItem'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import useTheme from '@mui/material/styles/useTheme'
+import useMediaQuery from '@mui/material/useMediaQuery/useMediaQuery'
+import { useState } from 'react'
+import { NavLink } from 'react-router-dom'
+import { PageNavInfo } from '../model/PageNavInfo'
 
 const pages: PageNavInfo[] = [
   {
@@ -37,6 +32,12 @@ const pages: PageNavInfo[] = [
 ]
 
 export default function NavBar() {
+  const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
+  return isSmallScreen ? <NarrowNavBar /> : <WideNavBar />
+}
+
+const WideNavBar = () => {
   return (
     <AppBar position="static">
       <Container maxWidth="lg" disableGutters>
@@ -66,6 +67,55 @@ export default function NavBar() {
           <Button>Login</Button>
         </Toolbar>
       </Container>
+    </AppBar>
+  )
+}
+
+const NarrowNavBar = () => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  return (
+    <AppBar position="static">
+      <Toolbar>
+        <SiteName />
+        <Box sx={{ flexGrow: 1 }} />
+        <IconButton
+          aria-label="menu"
+          onClick={handleOpen}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Menu
+          anchorEl={anchorEl}
+          anchorOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          keepMounted
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+        >
+          {pages.map((page, idx) => (
+            <MenuItem key={idx} onClick={handleClose}>
+              <NavLink to={page.location} style={{ textDecoration: 'none', color: 'inherit' }}>
+                {page.title}
+              </NavLink>
+            </MenuItem>
+          ))}
+        </Menu>
+      </Toolbar>
     </AppBar>
   )
 }

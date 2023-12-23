@@ -1,6 +1,7 @@
 ﻿import Button from '@mui/material/Button/Button'
 import { useState } from 'react'
 import ProtectedApi from '../../logic/ProtectedApi'
+import PageTitle from '../../components/PageTitle'
 
 const api = new ProtectedApi()
 
@@ -23,7 +24,7 @@ export default function Account() {
 
   return (
     <>
-      <h1>Account</h1>
+      <PageTitle>Account</PageTitle>
       <p>This page requires authentication.</p>
       <Button variant="contained" onClick={getData}>Test protected endpoint</Button>&nbsp;
       <Button variant="contained" onClick={clear}>Clear</Button>

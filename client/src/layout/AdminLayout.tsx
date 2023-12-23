@@ -1,34 +1,34 @@
-import * as React from 'react'
-import { styled } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
-import MuiDrawer from '@mui/material/Drawer'
-import Box from '@mui/material/Box'
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
-import Toolbar from '@mui/material/Toolbar'
-import List from '@mui/material/List'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
-import IconButton from '@mui/material/IconButton'
-import Grid from '@mui/material/Grid'
-import Paper from '@mui/material/Paper'
-import MenuIcon from '@mui/icons-material/Menu'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ExitToAppIcon from '@mui/icons-material/ExitToApp'
-import { useNavigate, Outlet, Navigate, useLocation } from 'react-router-dom'
-import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
-import PersonIcon from '@mui/icons-material/Person'
+import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 import LockOpenIcon from '@mui/icons-material/LockOpen'
+import MenuIcon from '@mui/icons-material/Menu'
+import PersonIcon from '@mui/icons-material/Person'
+import { ListItem, ListItemIcon, ListItemText } from '@mui/material'
+import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
+import Box from '@mui/material/Box'
+import CssBaseline from '@mui/material/CssBaseline'
+import Divider from '@mui/material/Divider'
+import MuiDrawer from '@mui/material/Drawer'
+import Grid from '@mui/material/Grid'
+import IconButton from '@mui/material/IconButton'
+import List from '@mui/material/List'
+import Paper from '@mui/material/Paper'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material/styles'
+import * as React from 'react'
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../components/auth/AuthProvider'
 
 const drawerWidth: number = 240
 
 export default function AdminLayout() {
-  const auth = useAuth()
+  const { user } = useAuth()
   const location = useLocation()
 
-  if (!auth.user || !auth.user.roles.includes('SUPER_ADMIN')) {
-    return <Navigate to={auth.user ? '/' : '/login'} state={{ from: location }} />
+  if (!user || !user.isSuperAdmin) {
+    return <Navigate to={user ? '/' : '/login'} state={{ from: location }} />
   }
 
   const [open, setOpen] = React.useState(true)

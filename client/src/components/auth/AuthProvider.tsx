@@ -25,8 +25,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         if (!isCancelled) {
-          const userFromResponse = meResponse.data!
-          setUser(userFromResponse || null)
+          if (meResponse.data === null) {
+            setUser(null)
+          }
+          const userFromResponse = new User(meResponse.data!)
+          setUser(userFromResponse)
         }
       })
       .finally(() => {
@@ -39,7 +42,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   function login(user: User, callback: VoidFunction) {
-    setUser(user)
+    setUser(new User(user))
     setTimeout(() => {
       callback()
     }, 100)

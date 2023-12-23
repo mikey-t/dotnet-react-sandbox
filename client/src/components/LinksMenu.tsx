@@ -2,7 +2,7 @@ import Link from '@mui/material/Link/Link'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import React, { ReactElement, useState } from 'react'
-import { LinkInfo } from '../model/LinkInfo'
+import { LinkInfo } from '../model/models'
 
 interface LinksMenuProps {
   links: LinkInfo[]

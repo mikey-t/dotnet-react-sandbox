@@ -1,8 +1,8 @@
-import Copyright from './Copyright'
-import Button from '@mui/material/Button'
 import Box from '@mui/material/Box/Box'
+import Button from '@mui/material/Button'
 import Link from '@mui/material/Link/Link'
-import { LinkInfo } from '../model/LinkInfo'
+import { LinkInfo } from '../model/models'
+import Copyright from './Copyright'
 
 const links: LinkInfo[] = [
   {

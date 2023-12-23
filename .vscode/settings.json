@@ -30,7 +30,8 @@
     "appbar",
     "Hmac",
     "nodb",
-    "SYSLIB"
+    "SYSLIB",
+    "tanstack"
   ],
   "cSpell.ignorePaths": [
     "client/src/pages/Blog.tsx",

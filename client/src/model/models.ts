@@ -1,9 +1,25 @@
-﻿export interface User {
-  id: number
-  email: string
-  displayName: string
-  roles: string[]
+﻿export class User {
+  id: number = 0
+  email: string = ''
+  displayName: string = ''
+  roles: UserRole[] = []
+
+  constructor(data?: Partial<User>) {
+    if (data) {
+      Object.assign(this, data)
+    }
+  }
+
+  hasRole = (role: UserRole): boolean => {
+    return this.roles.includes(role)
+  }
+
+  get isSuperAdmin(): boolean {
+    return this.roles.includes('SUPER_ADMIN')
+  }
 }
+
+export type UserRole = 'USER' | 'SUPER_ADMIN' | 'CONTENT_CREATOR'
 
 export interface LoginRequest {
   email: string,
@@ -85,4 +101,9 @@ export interface IValidationProblemDetails {
   detail?: string
   instance?: string
   errors?: { [key: string]: string[] }
+}
+
+export interface LinkInfo {
+  title: string
+  location: string
 }

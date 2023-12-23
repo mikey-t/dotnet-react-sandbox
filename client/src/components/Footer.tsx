@@ -2,9 +2,9 @@ import Copyright from './Copyright'
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box/Box'
 import Link from '@mui/material/Link/Link'
-import { PageNavInfo } from '../model/PageNavInfo'
+import { LinkInfo } from '../model/LinkInfo'
 
-const links: PageNavInfo[] = [
+const links: LinkInfo[] = [
   {
     title: 'Privacy',
     location: '/privacy'

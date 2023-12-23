@@ -6,17 +6,16 @@ import Button from '@mui/material/Button'
 import Container from '@mui/material/Container'
 import IconButton from '@mui/material/IconButton/IconButton'
 import Link from '@mui/material/Link/Link'
-import Menu from '@mui/material/Menu/Menu'
-import MenuItem from '@mui/material/MenuItem/MenuItem'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import useTheme from '@mui/material/styles/useTheme'
-import useMediaQuery from '@mui/material/useMediaQuery/useMediaQuery'
-import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { PageNavInfo } from '../model/PageNavInfo'
+import { LinkInfo } from '../model/LinkInfo'
+import { User } from '../model/models'
+import LinksMenu from './LinksMenu'
+import { useAuth } from './auth/AuthProvider'
+import NavBarAuth from './auth/NavBarAuth'
 
-const pages: PageNavInfo[] = [
+const publicPages: LinkInfo[] = [
   {
     title: 'Products',
     location: '/products'
@@ -28,16 +27,24 @@ const pages: PageNavInfo[] = [
   {
     title: 'Blog',
     location: '/blog'
-  }
+  },
 ]
 
-export default function NavBar() {
-  const theme = useTheme()
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
-  return isSmallScreen ? <NarrowNavBar /> : <WideNavBar />
+const protectedPages: LinkInfo[] = [
+  {
+    title: 'Account',
+    location: '/account'
+  },
+]
+
+export default function NavBar({ isSmallScreen }: { isSmallScreen: boolean }) {
+  const { user } = useAuth()
+  return isSmallScreen ? <NarrowNavBar user={user} /> : <WideNavBar user={user} />
 }
 
-const WideNavBar = () => {
+const WideNavBar = ({ user }: { user: User | null }) => {
+  const pages = user != null ? [...publicPages, ...protectedPages] : publicPages
+
   return (
     <AppBar position="static">
       <Container maxWidth="lg" disableGutters>
@@ -64,57 +71,23 @@ const WideNavBar = () => {
               ))
             }
           </Box>
-          <Button>Login</Button>
+          <NavBarAuth />
         </Toolbar>
       </Container>
     </AppBar>
   )
 }
 
-const NarrowNavBar = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleClose = () => {
-    setAnchorEl(null)
-  }
+const NarrowNavBar = ({ user }: { user: User | null }) => {
+  const pages = user != null ? [...publicPages, ...protectedPages] : publicPages
 
   return (
     <AppBar position="static">
       <Toolbar>
         <SiteName />
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton
-          aria-label="menu"
-          onClick={handleOpen}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          keepMounted
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-        >
-          {pages.map((page, idx) => (
-            <MenuItem key={idx} onClick={handleClose}>
-              <NavLink to={page.location} style={{ textDecoration: 'none', color: 'inherit' }}>
-                {page.title}
-              </NavLink>
-            </MenuItem>
-          ))}
-        </Menu>
+        <NavBarAuth />
+        <LinksMenu links={pages} anchorElement={<IconButton aria-label="menu"><MenuIcon /></IconButton>} />
       </Toolbar>
     </AppBar>
   )

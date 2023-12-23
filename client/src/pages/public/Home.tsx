@@ -2,7 +2,7 @@
 import Button from '@mui/material/Button'
 import Box from '@mui/material/Box/Box'
 import Link from '@mui/material/Link/Link'
-import PageTitle from '../components/PageTitle'
+import PageTitle from '../../components/PageTitle'
 
 export default function Home() {
   return (

@@ -45,7 +45,6 @@ export default function Login() {
         return
       }
       const user = userResponse.data!
-      console.log(user)
       auth.login(user, () => {
         navigate(fromUrl, { replace: true })
       })

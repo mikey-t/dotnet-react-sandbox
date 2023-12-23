@@ -1,4 +1,4 @@
-export interface PageNavInfo {
+export interface LinkInfo {
   title: string
   location: string
 }

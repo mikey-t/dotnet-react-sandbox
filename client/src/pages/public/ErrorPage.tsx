@@ -4,7 +4,7 @@ import Link from '@mui/material/Link/Link'
 import Paper from '@mui/material/Paper/Paper'
 import Typography from '@mui/material/Typography/Typography'
 import { isRouteErrorResponse, useRouteError } from 'react-router-dom'
-import Footer from '../components/Footer'
+import Footer from '../../components/Footer'
 
 export default function ErrorPage() {
   const error = useRouteError()

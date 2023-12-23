@@ -26,8 +26,8 @@ export default function Footer() {
       <Box sx={{ justifyContent: 'center', display: 'flex' }}>
         <Box>
           {links.map((link, idx) => (
-            <Link key={idx} href={link.location} sx={{ textDecoration: "none", color: "inherit" }}>
-              <Button size='small' sx={{ color: 'dimgrey', textTransform: 'none', }}>{link.title}</Button>
+            <Link key={idx} href={link.location}>
+              <Button size='small' sx={{ color: 'dimgrey', textTransform: 'none' }}>{link.title}</Button>
             </Link>
           ))}&nbsp;
         </Box>

@@ -4,13 +4,13 @@ import { User } from '../../model/models'
 
 const api = new AccountApi()
 
-export interface IAuthContext {
+export interface AuthContextType {
   user: User | null
   login: (user: User, callback: VoidFunction) => void
   logout: (callback: VoidFunction) => void
 }
 
-const AuthContext = React.createContext<IAuthContext>({} as IAuthContext)
+const AuthContext = React.createContext<AuthContextType>(null!)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>()
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }), [user])
 
   return (
-    <AuthContext.Provider value={memoValue as IAuthContext}>
+    <AuthContext.Provider value={memoValue as AuthContextType}>
       {!loadingInitial && children}
     </AuthContext.Provider>
   )

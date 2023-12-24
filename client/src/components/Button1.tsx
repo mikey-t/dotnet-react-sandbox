@@ -1,33 +1,26 @@
-import Button from '@mui/material/Button'
-import { MouseEventHandler, ReactNode } from 'react'
-import { SxProps, Theme } from '@mui/material'
+import Button, { ButtonProps } from '@mui/material/Button'
+import React from 'react'
 
-interface Button1Props {
-  onClick?: MouseEventHandler | undefined
-  startIcon?: ReactNode,
-  children: ReactNode,
-  type?: 'button' | 'reset' | 'submit'
-  sx?: SxProps<Theme>
+interface Button1Props extends Omit<ButtonProps, 'component'> {
 }
 
-export default function Button1(props: Button1Props) {
+const Button1: React.FC<Button1Props> = ({ sx, children, ...buttonProps }) => {
   return (
     <Button
       variant="contained"
-      sx={[{
+      sx={{
         display: 'flex',
         alignItems: 'center',
         fontSize: '16px',
         textTransform: 'none',
-        width: 1
-      },
-      ...(props.sx ? Array.isArray(props.sx) ? props.sx : [props.sx] : [])
-      ]}
-      onClick={props.onClick}
-      startIcon={props.startIcon}
-      type={props.type || 'button'}
+        width: 1,
+        ...sx,
+      }}
+      {...buttonProps}
     >
-      {props.children}
+      {children}
     </Button>
   )
 }
+
+export default Button1

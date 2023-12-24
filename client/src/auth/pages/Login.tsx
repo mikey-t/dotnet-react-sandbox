@@ -1,18 +1,20 @@
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
-import MuiLink from '@mui/material/Link'
+import Link from '@mui/material/Link/Link'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { SiteSettings } from '../../SiteSettings'
 import Button1 from '../../components/Button1'
 import LoadingBackdrop from '../../components/LoadingBackdrop'
-import { useAuth } from '../../components/auth/AuthProvider'
-import GoogleLoginButton from '../../components/auth/social/GoogleLoginButton'
-import MicrosoftLoginButton from '../../components/auth/social/MicrosoftLoginButton'
 import AccountApi from '../../logic/AccountApi'
-import { SiteSettings } from '../../SiteSettings'
+import AlphaLoginDisclaimer from '../components/AlphaLoginDisclaimer'
+import AuthPageTitle from '../components/AuthPageTitle'
+import { useAuth } from '../components/AuthProvider'
+import GoogleLoginButton from '../components/GoogleLoginButton'
+import MicrosoftLoginButton from '../components/MicrosoftLoginButton'
 
 const api = new AccountApi()
 
@@ -59,15 +61,9 @@ export default function Login() {
   return (
     <>
       <LoadingBackdrop loading={loading} />
-      <Grid container sx={{ marginTop: 5, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <Box>
-          <Alert severity="info">This site is in Alpha. You may not register or login unless you have received an invite.</Alert>
-        </Box>
-        <Box>
-          <Typography sx={{ my: 3 }} variant="h4" gutterBottom={true}>
-            Login
-          </Typography>
-        </Box>
+      <Grid container sx={{ marginTop: 2, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <AlphaLoginDisclaimer />
+        <AuthPageTitle>Sign In</AuthPageTitle>
         {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <Box>
             <GoogleLoginButton
@@ -107,7 +103,7 @@ export default function Login() {
           </Typography>
         </Grid>}
         <Grid item xs={12} sm={4}>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '250px' }}>
+          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '400px' }}>
             <TextField
               size="small"
               margin="dense"
@@ -144,15 +140,15 @@ export default function Login() {
               }}
               error={hasError}
             />
-            <Button1 type="submit" sx={{ my: 2 }}>
+            <Button1 type="submit" sx={{ mt: 2 }}>
               Login
             </Button1>
-            {hasError && <Alert severity="error" sx={{ mb: '2rem', mt: '2rem' }}>Email or password is incorrect</Alert>}
-            {whitelistError && <Alert severity="error" sx={{ mb: '2rem' }}>Your account has not received an invite</Alert>}
           </Box>
+          {hasError && <Alert severity="error" sx={{ mt: '1rem' }}>Email or password is incorrect</Alert>}
+          {whitelistError && <Alert severity="error" sx={{ mt: '1rem' }}>Your account has not received an invite</Alert>}
         </Grid>
-        <Typography>
-          Don&apos;t have an account? <MuiLink to="/sign-up" component={Link} style={{ textDecoration: "none" }}> Sign up</MuiLink>
+        <Typography sx={{ pt: '1rem' }}>
+          Don&apos;t have an account? <Link href="/sign-up">Sign up</Link>
         </Typography>
       </Grid>
     </>

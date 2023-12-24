@@ -1,8 +1,7 @@
-import Container from '@mui/material/Container'
-import { useSearchParams } from 'react-router-dom'
+import Container from '@mui/material/Container/Container'
+import Link from '@mui/material/Link/Link'
 import { useEffect, useState } from 'react'
-import MuiLink from '@mui/material/Link'
-import { Link } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import AccountApi from '../../logic/AccountApi'
 
 const api = new AccountApi()
@@ -24,12 +23,12 @@ export default function VerifyEmail() {
   }, [searchParams])
 
   return (
-    <Container>
+    <Container maxWidth="sm">
       {!message && <p>Processing...</p>}
-      {message && <>
+      {message && <div>
         <p>{message}</p>
-        <p><MuiLink to="/login" component={Link}>Click here to go to the login page</MuiLink></p>
-      </>}
+        <p><Link href="/login">Click here to go to the login page</Link></p>
+      </div>}
     </Container>
   )
 }

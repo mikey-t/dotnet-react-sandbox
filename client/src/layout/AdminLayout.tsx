@@ -19,7 +19,7 @@ import Typography from '@mui/material/Typography'
 import { styled } from '@mui/material/styles'
 import * as React from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../components/auth/AuthProvider'
+import { useAuth } from '../auth/components/AuthProvider'
 
 const drawerWidth: number = 240
 

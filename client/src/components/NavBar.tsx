@@ -11,8 +11,8 @@ import Typography from '@mui/material/Typography'
 import { NavLink } from 'react-router-dom'
 import { LinkInfo, User } from '../model/models'
 import LinksMenu from './LinksMenu'
-import { useAuth } from './auth/AuthProvider'
-import NavBarAuth from './auth/NavBarAuth'
+import { useAuth } from '../auth/components/AuthProvider'
+import NavBarAuth from '../auth/components/NavBarAuth'
 
 const publicPages: LinkInfo[] = [
   {

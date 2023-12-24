@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../../components/auth/AuthProvider'
+import { useAuth } from '../components/AuthProvider'
 
 export default function Logout() {
   const auth = useAuth()
@@ -16,4 +16,6 @@ export default function Logout() {
     </Box>
   )
 }
+
+
 

@@ -53,3 +53,18 @@ Debugging the client app:
 - Start the API normally in the shell with `swig server`
 - Instead of starting the client with `swig client` (or `npm run dev` from client dir), use the launch configuration by hitting F5.
   - If in the root solution, you may have to click into the "Run and Debug" left-pane and select the chrome launch task instead of the API launch task
+
+## Client Organization Strategy
+
+For now I'm going with a hybrid approach between these:
+
+- One folder for pages and one for components
+- Feature folders with sub-folders for pages and components
+
+By "pages" I just mean components that are associated with routes that go into the `<Outlet />` in a layout.
+
+Reasoning:
+
+- Things in feature folders shouldn't reference any components or CSS outside of them - this will allow me to move things into a component library
+- I think that attempting to create feature folders for every little thing will cause more harm than good for small to medium sized projects, so I'm going to lump everything else together for now
+- If individual features start to become complex or are candidates for migration into another library, I'll create feature folders at that point

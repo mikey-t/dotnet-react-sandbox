@@ -6,7 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { ThemeProvider } from '@mui/material/styles'
 import { SnackbarProvider } from 'notistack'
 import { RouterProvider } from 'react-router-dom'
-import { AuthProvider } from './components/auth/AuthProvider'
+import { AuthProvider } from './auth/components/AuthProvider'
 import { router } from './router'
 import { theme } from './theme'
 

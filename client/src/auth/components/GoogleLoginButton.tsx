@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SiteSettings } from '../../../SiteSettings'
+import { SiteSettings } from '../../SiteSettings'
 import { CredentialResponse } from 'google-one-tap'
 
 interface GoogleLoginButtonProps {

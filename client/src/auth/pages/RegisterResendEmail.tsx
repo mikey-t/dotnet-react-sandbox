@@ -1,6 +1,4 @@
 import Container from '@mui/material/Container'
-import MuiLink from '@mui/material/Link'
-import { Link } from 'react-router-dom'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import Alert from '@mui/material/Alert'
@@ -8,6 +6,8 @@ import React, { useState } from 'react'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import AccountApi from '../../logic/AccountApi'
+import AuthPageTitle from '../components/AuthPageTitle'
+import Link from '@mui/material/Link/Link'
 
 const api = new AccountApi()
 
@@ -35,7 +35,8 @@ export default function RegisterResendEmail() {
   }
 
   return (
-    <Container component="main" sx={{ pt: '30px' }}>
+    <Container maxWidth="sm">
+      <AuthPageTitle>Sign Up - Resend Verification Email</AuthPageTitle>
       {!message && <>
         <Box>
           <Typography>To have your registration email re-sent, please provide your email below.</Typography>
@@ -60,7 +61,7 @@ export default function RegisterResendEmail() {
       </>}
       {errorMessage && <Box sx={{ pt: '10px' }}><Alert severity="error">{errorMessage}</Alert></Box>}
       {message && <Box sx={{ pt: '30px' }}>
-        {message} <MuiLink to="/login" component={Link}>Click here to go to the login page.</MuiLink>
+        {message} <Link href="/login">Click here to go to the login page.</Link>
       </Box>}
     </Container>
   )

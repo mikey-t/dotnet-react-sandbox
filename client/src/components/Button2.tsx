@@ -1,29 +1,26 @@
-import * as React from 'react'
-import Button from '@mui/material/Button'
-import { MouseEventHandler, ReactNode } from 'react'
+import Button, { ButtonProps } from '@mui/material/Button'
+import React from 'react'
 
-
-interface Button1Props {
-  onClick?: MouseEventHandler | undefined
-  startIcon?: ReactNode,
-  children: ReactNode
+interface Button2Props extends Omit<ButtonProps, 'component'> {
 }
 
-export default function Button2(props: Button1Props) {
+const Button2: React.FC<Button2Props> = ({ sx, children, ...buttonProps }) => {
   return (
     <Button
       variant="outlined"
       sx={{
-        display: "flex",
-        alignItems: "center",
+        display: 'flex',
+        alignItems: 'center',
         fontSize: '16px',
         textTransform: 'none',
-        width: 1
+        width: 1,
+        ...sx,
       }}
-      onClick={props.onClick}
-      startIcon={props.startIcon}
+      {...buttonProps}
     >
-      {props.children}
+      {children}
     </Button>
   )
 }
+
+export default Button2

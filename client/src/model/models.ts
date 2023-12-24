@@ -5,9 +5,10 @@
   roles: UserRole[] = []
 
   constructor(data?: Partial<User>) {
-    if (data) {
-      Object.assign(this, data)
+    if (!data || typeof data === 'string' || data.id === 0) {
+      throw new Error('cannot construct User object - invalid data')
     }
+    Object.assign(this, data)
   }
 
   hasRole = (role: UserRole): boolean => {

@@ -1,7 +1,7 @@
 import { PublicClientApplication } from '@azure/msal-browser/dist/app/PublicClientApplication'
 import { Configuration } from '@azure/msal-browser/dist/config/Configuration'
 import React, { useState } from 'react'
-import { SETTINGS } from '../../../settings'
+import { SiteSettings } from '../../../SiteSettings'
 import Box from '@mui/material/Box'
 import LoadingBackdrop from '../../LoadingBackdrop'
 import AccountApi from '../../../logic/AccountApi'
@@ -10,7 +10,7 @@ import { User } from '../../../model/models'
 const api = new AccountApi()
 const msalConfig: Configuration = {
   auth: {
-    clientId: SETTINGS.MICROSOFT_CLIENT_ID
+    clientId: SiteSettings.MICROSOFT_CLIENT_ID
   }
 }
 const msalInstance = new PublicClientApplication(msalConfig)

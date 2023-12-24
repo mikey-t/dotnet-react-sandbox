@@ -25,11 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         if (!isCancelled) {
-          if (meResponse.data === null) {
+          if (!meResponse.data) {
             setUser(null)
+          } else {
+            const userFromResponse = new User(meResponse.data)
+            setUser(userFromResponse)
           }
-          const userFromResponse = new User(meResponse.data!)
-          setUser(userFromResponse)
         }
       })
       .finally(() => {
@@ -42,6 +43,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   function login(user: User, callback: VoidFunction) {
+    if (!user || user.id === 0) {
+      throw new Error('invalid User object - cannot login')
+    }
     setUser(new User(user))
     setTimeout(() => {
       callback()

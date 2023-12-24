@@ -7,10 +7,14 @@ import { IValidationProblemDetails } from '../model/models'
 export default class ApiBase {
   private client = AxiosInstance
 
-  async get<T>(url: string): Promise<ApiResponse<T | null>> {
+  async get<T>(url: string, expectString: boolean = false): Promise<ApiResponse<T | null>> {
     try {
       const res = await this.client.get<T>(url)
-      return new ApiResponse(res.status, res.data)
+      let responseData: T | null = res.data
+      if (res.data === '' && !expectString) {
+        responseData = null
+      }
+      return new ApiResponse(res.status, responseData)
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const statusCode = ApiBase.getStatusCode(err)

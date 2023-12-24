@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { SETTINGS } from '../../../settings'
+import { SiteSettings } from '../../../SiteSettings'
 import { CredentialResponse } from 'google-one-tap'
 
 interface GoogleLoginButtonProps {
@@ -27,7 +27,7 @@ const GoogleLoginButton: React.FC<GoogleLoginButtonProps> = ({ onInitFailure, on
 
     try {
       google.accounts.id.initialize({
-        client_id: SETTINGS.GOOGLE_CLIENT_ID,
+        client_id: SiteSettings.GOOGLE_CLIENT_ID,
         callback: handleGoogleCredentialResponse
       })
 

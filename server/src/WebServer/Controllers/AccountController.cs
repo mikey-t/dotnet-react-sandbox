@@ -92,7 +92,7 @@ public class AccountController : ControllerBase
         {
             return Unauthorized(ex.Message);
         }
-        
+
         Response.Cookies.Append(GlobalConstants.TOKEN_HEADER, loginResult.JwtString, new CookieOptions
         {
             HttpOnly = true,
@@ -121,7 +121,7 @@ public class AccountController : ControllerBase
     }
 
     [HttpGet("me")]
-    [ProducesResponseType((int)HttpStatusCode.NoContent)]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
     public IActionResult Me()
     {
@@ -129,7 +129,9 @@ public class AccountController : ControllerBase
 
         if (account == null)
         {
-            return NoContent();
+            // We don't throw an error code because checking for the user happens on every page load.
+            // Return an empty 200, which just means "you're not logged in".
+            return Ok();
         }
 
         return Ok(AccountResponse.FromAccount(account));
@@ -141,12 +143,12 @@ public class AccountController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
     {
         var result = await _registrationLogic.Register(request);
-        
+
         if (result.ErrorMessage != null)
         {
             return Conflict(result.ErrorMessage);
         }
-        
+
         return Ok();
     }
 
@@ -176,7 +178,7 @@ public class AccountController : ControllerBase
         {
             return StatusCode(500, result.ErrorMessage);
         }
-        
+
         return Ok();
     }
 }

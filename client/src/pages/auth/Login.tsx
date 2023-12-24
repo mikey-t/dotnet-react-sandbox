@@ -12,7 +12,7 @@ import { useAuth } from '../../components/auth/AuthProvider'
 import GoogleLoginButton from '../../components/auth/social/GoogleLoginButton'
 import MicrosoftLoginButton from '../../components/auth/social/MicrosoftLoginButton'
 import AccountApi from '../../logic/AccountApi'
-import { SETTINGS } from '../../settings'
+import { SiteSettings } from '../../SiteSettings'
 
 const api = new AccountApi()
 
@@ -68,7 +68,7 @@ export default function Login() {
             Login
           </Typography>
         </Box>
-        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
+        {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <Box>
             <GoogleLoginButton
               onSuccess={(user) => {
@@ -87,7 +87,7 @@ export default function Login() {
             {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
           </Box>
         </Grid>}
-        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
+        {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <MicrosoftLoginButton
             onWhitelistFailure={() => {
               setWhitelistError(true)
@@ -102,7 +102,7 @@ export default function Login() {
             }}
           />
         </Grid>}
-        {SETTINGS.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
+        {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
           <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR
           </Typography>
         </Grid>}

@@ -12,9 +12,7 @@ import GoogleLoginButton from '../../components/auth/social/GoogleLoginButton'
 import MicrosoftLoginButton from '../../components/auth/social/MicrosoftLoginButton'
 
 export default function SignUp() {
-  console.log('START')
   const auth = useAuth()
-  console.log('FINISH')
   const navigate = useNavigate()
   const { state } = useLocation()
   const [socialLoginError, setSocialLoginError] = useState<string>('')

@@ -8,7 +8,7 @@ namespace WebServer.Logic;
 
 public interface IRegistrationLogic
 {
-    Task<RegistrationResult> Register(RegistrationRequest req);
+    Task<RegistrationResult> SignUp(RegistrationRequest req);
     Task<RegistrationResult> VerifyEmail(string code);
     Task<RegistrationResult> ResendVerificationEmail(string email);
 }
@@ -48,7 +48,7 @@ public class RegistrationLogic : IRegistrationLogic
         _loginLogic = loginLogic;
     }
 
-    public async Task<RegistrationResult> Register(RegistrationRequest req)
+    public async Task<RegistrationResult> SignUp(RegistrationRequest req)
     {
         var email = EmailLogic.NormalizeEmail(req.Email);
 

@@ -9,7 +9,7 @@ export default function AlphaLoginDisclaimer() {
   }
   return (
     <Box>
-      <Alert severity="info"><Typography variant="body2" align="center">This site is in Alpha. You may not register or login unless you have received an invite.</Typography></Alert>
+      <Alert severity="info"><Typography variant="body2" align="center">This site is in Alpha. You may not sign up or login unless you have received an invite.</Typography></Alert>
     </Box>
   )
 }

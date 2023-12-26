@@ -94,7 +94,7 @@ export default class ApiBase {
     try {
       statusCode = axiosError?.response?.status || 500
     } catch (err) {
-      console.error('error parsing axios error code, using 500', err)
+      console.error('error parsing axios error code - using 500', err)
       statusCode = 500
     }
     return statusCode

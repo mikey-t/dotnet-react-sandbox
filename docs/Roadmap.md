@@ -19,7 +19,7 @@
 - Add in vitest for client unit testing
 - More client code cleanup
   - More permanent fixes for eslint warnings in the client project
-  - Research upgrading of social login dependencies to latest versions (some breaking changes there)
+  - Research upgrading of external login dependencies to latest versions (some breaking changes there)
   - Need a better client API accessor strategy (it was an okay first attempt, but I think I can do a lot better)
 - Email/registration stuff:
   - Documentation on how to set up registration with real email verification

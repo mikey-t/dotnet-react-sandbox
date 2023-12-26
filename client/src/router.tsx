@@ -13,11 +13,11 @@ import Logout from './auth/pages/Logout'
 import Account from './pages/protected/Account'
 import RequireAuth from './auth/components/RequireAuth'
 import RequireNotAuth from './auth/components/RequireNotAuth'
-import SignUp from './auth/pages/SignUp'
-import RegisterWithEmail from './auth/pages/RegisterWithEmail'
+import SignUpExternal from './auth/pages/SignUpExternal'
+import SignUpEmail from './auth/pages/SignUpEmail'
 import VerifyEmail from './auth/pages/VerifyEmail'
-import RegisterNext from './auth/pages/RegisterNext'
-import RegisterResendEmail from './auth/pages/RegisterResendEmail'
+import SignUpNext from './auth/pages/SignUpNext'
+import SignUpResendEmail from './auth/pages/SignUpResendEmail'
 import AdminHome from './pages/admin/AdminHome'
 import Users from './pages/admin/Users'
 import Whitelist from './pages/admin/Whitelist'
@@ -65,24 +65,24 @@ const routes: RouteObject[] = [
           element: <RequireNotAuth><Login /></RequireNotAuth>
         },
         {
-          path: 'sign-up',
-          element: <RequireNotAuth><SignUp /></RequireNotAuth>
+          path: 'sign-up-external',
+          element: <RequireNotAuth><SignUpExternal /></RequireNotAuth>
         },
         {
-          path: 'register',
-          element: <RequireNotAuth><RegisterWithEmail /></RequireNotAuth>
+          path: 'sign-up-email',
+          element: <RequireNotAuth><SignUpEmail /></RequireNotAuth>
         },
         {
           path: 'verify-email',
           element: <RequireNotAuth><VerifyEmail /></RequireNotAuth>
         },
         {
-          path: 'register-next',
-          element: <RequireNotAuth><RegisterNext /></RequireNotAuth>
+          path: 'sign-up-next',
+          element: <RequireNotAuth><SignUpNext /></RequireNotAuth>
         },
         {
-          path: 'register-resend-email',
-          element: <RequireNotAuth><RegisterResendEmail /></RequireNotAuth>
+          path: 'sign-up-resend-email',
+          element: <RequireNotAuth><SignUpResendEmail /></RequireNotAuth>
         },
         {
           path: 'logout',

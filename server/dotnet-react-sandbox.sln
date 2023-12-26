@@ -25,8 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		README.md = README.md
 		.env = .env
 		.env.template = .env.template
-		docs\images\SocialLoginFlow.png = docs\images\SocialLoginFlow.png
-		docs\SocialLogins.md = docs\SocialLogins.md
+		docs\images\ExternalLoginFlow.png = docs\images\ExternalLoginFlow.png
+		docs\ExternalLogins.md = docs\ExternalLogins.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbMigrations", "src\DbMigrations\DbMigrations.csproj", "{E7EE7593-0ABF-41EC-9A2A-AE1B0AF2A89B}"

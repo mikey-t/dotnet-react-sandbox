@@ -20,7 +20,7 @@ This is a combination of a playground for trying new ideas as well as a referenc
 - Cross platform development*
 - Lightning fast startup and full hot reload for local development for both server and client
 - Postgres database running in Docker with fully automated management via swig tasks
-- Local trusted https support* (especially important when working on social login functionality locally)
+- Local trusted https support* (especially important when working on external login functionality locally)
 - Role based user authentication/authorization
 - Segregated test database, perfect for running potentially destructive unit tests that access the database - without disturbing your local application data
 - Manage primary and test databases on a dev machine simultaneously with simply centralized shell commands
@@ -32,7 +32,7 @@ This is a combination of a playground for trying new ideas as well as a referenc
   - React router
   - Dark mode
   - Login and registration components/pages
-  - Social logins functionality (Microsoft, Google)
+  - External login functionality (Microsoft, Google)
   - Email registration (WIP)
   - Basic routing setup
   - Basic admin site template with auth-aware routing
@@ -184,7 +184,7 @@ Verify your new project setup:
 - Login with your super admin user - use the credentials you set in your `.env` (defaults to `admin@test.com`/`Abc1234!`)
 - Setup a connection to your locally running database with PgAdmin or a VSCode extension by using `localhost` as the host and credentials from `DB_ROOT_USER` and `DB_ROOT_PASSWORD` from your `.env`
 
-Note that social logins (login with google and microsoft), google analytics and user registration using AWS SES won't work without additional setup. For setting up social logins, see [./SocialLogins.md](./SocialLogins.md).
+Note that external logins (login with google and microsoft), google analytics and user registration using AWS SES won't work without additional setup. For setting up external logins, see [./ExternalLogins.md](./ExternalLogins.md).
 
 ## Remove Project
 
@@ -381,7 +381,7 @@ Access swagger UI at https://localhost:5001/api or the json at https://localhost
 
 ## Other Docs
 
-Social login documentation: [Social Logins documentation](./SocialLogins.md)
+External login documentation: [External Login documentation](./ExternalLogins.md)
 
 ## Local Postgres Upgrade Process
 

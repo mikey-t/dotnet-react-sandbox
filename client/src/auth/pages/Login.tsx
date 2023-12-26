@@ -25,7 +25,7 @@ export default function Login() {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
   const [hasError, setHasError] = useState<boolean>(false)
-  const [socialLoginError, setSocialLoginError] = useState<string>('')
+  const [externalLoginError, setExternalLoginError] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [whitelistError, setWhitelistError] = useState<boolean>(false)
 
@@ -64,7 +64,7 @@ export default function Login() {
       <Grid container sx={{ marginTop: 2, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <AlphaLoginDisclaimer />
         <AuthPageTitle>Sign In</AuthPageTitle>
-        {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
+        {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
           <Box>
             <GoogleLoginButton
               onSuccess={(user) => {
@@ -74,22 +74,22 @@ export default function Login() {
               }}
               onLoginFailure={(error) => {
                 console.error('error processing google login response', error)
-                setSocialLoginError('An unexpected error occurred attempting to login with google')
+                setExternalLoginError('An unexpected error occurred attempting to login with google')
               }}
               onInitFailure={(error) => {
                 console.error('error initializing google login button', error)
               }}
             />
-            {socialLoginError && <Alert severity="error">{socialLoginError}</Alert>}
+            {externalLoginError && <Alert severity="error">{externalLoginError}</Alert>}
           </Box>
         </Grid>}
-        {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
+        {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
           <MicrosoftLoginButton
             onWhitelistFailure={() => {
               setWhitelistError(true)
             }}
             onFailure={() => {
-              setSocialLoginError('An unexpected error occurred attempting to login with microsoft')
+              setExternalLoginError('An unexpected error occurred attempting to login with microsoft')
             }}
             onSuccess={(user) => {
               auth.login(user, () => {
@@ -98,9 +98,8 @@ export default function Login() {
             }}
           />
         </Grid>}
-        {SiteSettings.ENABLE_SOCIAL_LOGINS && <Grid item xs={12}>
-          <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR
-          </Typography>
+        {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
+          <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR</Typography>
         </Grid>}
         <Grid item xs={12} sm={4}>
           <Box component="form" onSubmit={handleSubmit} noValidate sx={{ maxWidth: '400px' }}>
@@ -148,7 +147,7 @@ export default function Login() {
           {whitelistError && <Alert severity="error" sx={{ mt: '1rem' }}>Your account has not received an invite</Alert>}
         </Grid>
         <Typography sx={{ pt: '1rem' }}>
-          Don&apos;t have an account? <Link href="/sign-up">Sign up</Link>
+          Don&apos;t have an account? <Link href="/sign-up-external">Sign up</Link>
         </Typography>
       </Grid>
     </>

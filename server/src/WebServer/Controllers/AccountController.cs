@@ -137,12 +137,12 @@ public class AccountController : ControllerBase
         return Ok(AccountResponse.FromAccount(account));
     }
 
-    [HttpPost("register")]
+    [HttpPost("sign-up")]
     [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
-    public async Task<IActionResult> Register([FromBody] RegistrationRequest request)
+    public async Task<IActionResult> SignUpWithEmail([FromBody] RegistrationRequest request)
     {
-        var result = await _registrationLogic.Register(request);
+        var result = await _registrationLogic.SignUp(request);
 
         if (result.ErrorMessage != null)
         {

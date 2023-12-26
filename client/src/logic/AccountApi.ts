@@ -26,8 +26,8 @@ export default class AccountApi extends ApiBase {
     return await this.post<User>('account/login-microsoft', { code })
   }
 
-  async register(firstName: string, lastName: string, email: string, password: string): Promise<ApiResponse<unknown>> {
-    return await this.post<string>('account/register', {
+  async signUp(firstName: string, lastName: string, email: string, password: string): Promise<ApiResponse<unknown>> {
+    return await this.post<string>('account/sign-up', {
       firstName: firstName,
       lastName: lastName,
       email: email,

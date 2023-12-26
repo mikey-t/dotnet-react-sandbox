@@ -1,20 +1,22 @@
 ﻿import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
 import Grid from '@mui/material/Grid/Grid'
 import Link from '@mui/material/Link/Link'
 import TextField from '@mui/material/TextField/TextField'
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Button1 from '../../components/Button1'
+import AccountApi from '../../logic/AccountApi'
 import AlphaLoginDisclaimer from '../components/AlphaLoginDisclaimer'
 import AlreadyHaveAnAccount from '../components/AlreadyHaveAnAccount'
 import AuthPageTitle from '../components/AuthPageTitle'
 import LegalDisclaimer from '../components/LegalDisclaimer'
-import AccountApi from '../../logic/AccountApi'
+import Typography from '@mui/material/Typography/Typography'
+import { SiteSettings } from '../../SiteSettings'
 
 const api = new AccountApi()
 
-export default function RegisterWithEmail() {
+export default function SignUpEmail() {
   const formWidth = '400px'
 
   const [firstName, setFirstName] = useState<string>('')
@@ -28,12 +30,15 @@ export default function RegisterWithEmail() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setMessage('')
-    const res = await api.register(firstName, lastName, email, password)
+    const res = await api.signUp(firstName, lastName, email, password)
     if (res.isError()) {
+      if (res.statusCode === 400) {
+        setMessage('an unexpected error occurred')
+      }
       setMessage('an unexpected error occurred')
       return
     }
-    navigate('/register-next')
+    navigate('/sign-up-next')
   }
 
   return (
@@ -94,15 +99,18 @@ export default function RegisterWithEmail() {
             />
           </Grid>
         </Grid>
-        <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+        <Button1 type="submit" sx={{ mt: 3, mb: 2 }}>
           Sign Up
-        </Button>
+        </Button1>
         {message && <Box sx={{ pb: '1rem', maxWidth: formWidth }}>
           <Alert severity="error">{message}</Alert>
         </Box>}
-        <Box display="flex" flexDirection="column" alignItems="center">
+        {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Box sx={{ textAlign: 'center' }}>
+          Or, go back to <Link href="/sign-up-external">external account registration</Link>
+        </Box>}
+        <Box sx={{ textAlign: 'center' }}>
           <AlreadyHaveAnAccount />
-          <Link href="/register-resend-email">Resend verification email</Link>
+          <Link href="/sign-up-resend-email">Resend verification email</Link>
         </Box>
       </Box>
     </Box>

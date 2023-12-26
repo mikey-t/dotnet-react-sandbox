@@ -1,6 +1,6 @@
-# Social Logins
+# External Logins
 
-![Generic Social Login Flow](./images/SocialLoginFlow.png)
+![Generic External Login Flow](./images/ExternalLoginFlow.png)
 
 ## Code Locations
 
@@ -20,7 +20,7 @@ Login page: `src/client/pages/auth/Login.tsx`
 - `<GoogleLoginButton />`
 - `<MicrosoftLoginButton />`
 
-Register/sign-up page: `src/client/pages/auth/SignUp.tsx`
+Sign-up page: `src/client/pages/auth/SignUp.tsx`
 
 - `<GoogleLoginButton />`
 - `<MicrosoftLoginButton />`
@@ -44,7 +44,7 @@ Service endpoints: `WebServer/Controllers/AccountController.cs`:
 
 These UI's change from time to time so this might not be exactly how to do it, but it should be similar.
 
-### Microsoft Social Login Account Setup
+### Microsoft Login Account Setup
 
 Azure -> App Registrations
 
@@ -68,7 +68,7 @@ Other notes:
 
 - A verified domain is required to get this working in production for all users rather than just test users (see the Branding and properties page -> publisher domain)
 
-### Google Social Login Account Setup
+### Google Login Account Setup
 
 Google developer console
 

@@ -11,7 +11,7 @@ import Link from '@mui/material/Link/Link'
 
 const api = new AccountApi()
 
-export default function RegisterResendEmail() {
+export default function SignUpResendEmail() {
   const [email, setEmail] = useState<string>('')
   const [message, setMessage] = useState<string>('')
   const [errorMessage, setErrorMessage] = useState<string>('')

@@ -22,8 +22,9 @@ export default function SignUpResendEmail() {
 
     const res = await api.resendVerificationEmail(email)
     if (res.isError()) {
-      if (res.statusCode === 400 && res.exception?.errors['Email'][0]) {
-        setErrorMessage(res.exception.errors['Email'][0])
+      const emailErrors = res.exception?.getValidationErrors('Email')
+      if (res.statusCode === 400 && emailErrors !== undefined && emailErrors.length > 0) {
+        setErrorMessage(emailErrors[0])
       } else {
         console.error('unexpected error', res.exception?.toJson())
         setErrorMessage('unexpected error')

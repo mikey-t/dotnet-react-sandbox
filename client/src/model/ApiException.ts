@@ -9,6 +9,10 @@ export default class ApiException extends Error {
     return JSON.parse(JSON.stringify(this))
   }
 
+  getValidationErrors = (fieldName: string): string[] | undefined => {
+    return this.errors?.find(validationError => validationError.fieldName === fieldName)?.errors
+  }
+
   static fromValidationExceptionResponseData(code: number, data: ValidationProblemDetails): ApiException {
     const ex = new ApiException(code, data.detail || data.title || '')
 

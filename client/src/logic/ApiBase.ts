@@ -2,7 +2,7 @@ import AxiosInstance from './AxiosInstance'
 import axios, { AxiosError } from 'axios'
 import ApiException from '../model/ApiException'
 import ApiResponse from '../model/ApiResponse'
-import { IValidationProblemDetails } from '../model/models'
+import { ValidationProblemDetails } from '../model/models'
 
 export default class ApiBase {
   private client = AxiosInstance
@@ -68,7 +68,7 @@ export default class ApiBase {
   private static getApiExceptionFromAxiosError(error: AxiosError): ApiException {
     if (error.response) {
       const code = error.response.status
-      const data = error.response.data as IValidationProblemDetails
+      const data = error.response.data as ValidationProblemDetails
 
       if (code === 400 && data && data.title && data.errors) {
         return ApiException.fromValidationExceptionResponseData(code, data)

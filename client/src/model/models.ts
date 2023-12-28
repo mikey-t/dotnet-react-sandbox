@@ -95,13 +95,18 @@ export interface SessionCard {
   finishedAt: Date
 }
 
-export interface IValidationProblemDetails {
+export interface ValidationError {
+  fieldName: string
+  errors: string[]
+}
+
+export interface ValidationProblemDetails {
   type?: string
   title?: string
   status?: number
   detail?: string
   instance?: string
-  errors?: { [key: string]: string[] }
+  errors?: Map<string, string[]>
 }
 
 export interface LinkInfo {

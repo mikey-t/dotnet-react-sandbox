@@ -19,3 +19,11 @@ export function humanFileSize(bytes: number, si = false, dp = 1): string {
 
   return bytes.toFixed(dp) + ' ' + units[u]
 }
+
+export function lowercaseFirstLetter(str: string) {
+  return str.charAt(0).toLowerCase() + str.slice(1)
+}
+
+export function logFormatted(obj: unknown) {
+  console.log(JSON.stringify(obj, null, 2))
+}

@@ -138,15 +138,22 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("sign-up")]
-    [ProducesResponseType((int)HttpStatusCode.Conflict)]
     [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<IActionResult> SignUpWithEmail([FromBody] RegistrationRequest request)
     {
         var result = await _registrationLogic.SignUp(request);
 
+        if (result.IsAlreadyRegistered)
+        {
+            _logger.LogWarning("Attempt to register already registered email: {Email}", request.Email);
+            return Ok();
+        }
+
         if (result.ErrorMessage != null)
         {
-            return Conflict(result.ErrorMessage);
+            _logger.LogError("Registration error: {RegistrationError}", result.ErrorMessage);
+            return StatusCode((int)HttpStatusCode.InternalServerError);
         }
 
         return Ok();

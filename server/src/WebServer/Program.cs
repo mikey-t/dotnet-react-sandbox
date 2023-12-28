@@ -66,6 +66,7 @@ try
     SqlMapper.AddTypeHandler(new DateTimeHandler());
 
     builder.Services.AddSingleton<IEnvironmentSettings>(envSettings);
+    builder.Services.AddSingleton<IFeatureFlags, FeatureFlags>();
     builder.Services.AddSingleton<IConnectionStringProvider, ConnectionStringProvider>();
     builder.Services.AddSingleton<IPasswordLogic>(new PasswordLogic());
     builder.Services.AddScoped<IAccountRepository, AccountRepository>();

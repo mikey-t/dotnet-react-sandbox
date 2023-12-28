@@ -15,6 +15,7 @@ public interface IRegistrationLogic
 
 public class RegistrationResult
 {
+    public bool IsAlreadyRegistered { get; set; }
     public string? ErrorMessage { get; init; }
 }
 
@@ -61,14 +62,14 @@ public class RegistrationLogic : IRegistrationLogic
         var existingAccount = await _accountRepo.GetAccountByEmail(email);
         if (existingAccount != null)
         {
-            return new RegistrationResult { ErrorMessage = "This email is already in use" };
+            return new RegistrationResult { IsAlreadyRegistered = true };
         }
 
         // Check if registration already exists
         var existingRegistration = await _accountRepo.GetRegistrationByEmail(email);
         if (existingRegistration != null)
         {
-            return new RegistrationResult { ErrorMessage = "This email is already registered - please confirm your email" };
+            return new RegistrationResult { IsAlreadyRegistered = true };
         }
 
         var registration = await _accountRepo.AddRegistration(new Registration
@@ -109,7 +110,7 @@ public class RegistrationLogic : IRegistrationLogic
         }
 
         var account = new Account(registration.Email, registration.FirstName, registration.LastName, null, registration.Password,
-            new List<string> { Roles.USER });
+            [Roles.USER]);
 
         await _accountRepo.AddAccount(account);
 

@@ -16,20 +16,28 @@ public class AwsSimpleEmailSender : IEmailSender
 {
     private readonly ILogger _logger;
     private readonly IEnvironmentSettings _environmentSettings;
+    private readonly IFeatureFlags _featureFlags;
 
     private const string FROM_ACCOUNT = "noreply@cookiebrains.com";
 
     // private const string FEEDBACK_ADDRESS = "mike@mikeyt.net";
     private const string UTF8 = "UTF-8";
 
-    public AwsSimpleEmailSender(ILogger<AwsSimpleEmailSender> logger, IEnvironmentSettings environmentSettings)
+    public AwsSimpleEmailSender(ILogger<AwsSimpleEmailSender> logger, IEnvironmentSettings environmentSettings, IFeatureFlags featureFlags)
     {
         _logger = logger;
         _environmentSettings = environmentSettings;
+        _featureFlags = featureFlags;
     }
 
     public async Task SendMail(string recipientAddress, string subject, string bodyText, string? bodyHtml = null)
     {
+        if (!_featureFlags.IsEmailSendingEnabled())
+        {
+            _logger.LogWarning("Warning: email sending is disabled");
+            return;
+        }
+
         var username = _environmentSettings.GetString(GlobalSettings.AWS_SES_USERNAME);
         var password = _environmentSettings.GetString(GlobalSettings.AWS_SES_PASSWORD);
 

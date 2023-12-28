@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
@@ -5,6 +6,7 @@ import Typography from '@mui/material/Typography'
 import { useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { SiteSettings } from '../../SiteSettings'
+import AccountApi from '../../logic/AccountApi'
 import AlphaLoginDisclaimer from '../components/AlphaLoginDisclaimer'
 import AlreadyHaveAnAccount from '../components/AlreadyHaveAnAccount'
 import AuthPageTitle from '../components/AuthPageTitle'
@@ -14,10 +16,14 @@ import LegalDisclaimer from '../components/LegalDisclaimer'
 import LinkButton from '../components/LinkButton'
 import MicrosoftLoginButton from '../components/MicrosoftLoginButton'
 
+const api = new AccountApi()
+
 export default function SignUpExternal() {
   if (!SiteSettings.ENABLE_EXTERNAL_LOGINS) {
     return <Navigate to="/sign-up-email" replace={true} />
   }
+
+  const [loading, setLoading] = useState<boolean>(false)
 
   const auth = useAuth()
   const navigate = useNavigate()
@@ -27,6 +33,29 @@ export default function SignUpExternal() {
 
   const fromUrl = state?.from?.pathname || '/'
 
+  const handleGoogleCredentialResponse = (credentialResponse: any) => {
+    setLoading(true)
+    api.loginGoogle(credentialResponse.credential).then(res => {
+      if (res.isError()) {
+        setLoading(false)
+        if (res.statusCode === 401) {
+          setWhitelistError(true)
+          return
+        }
+        throw new Error('error logging in with google', res.exception?.toJson())
+      }
+      const user = res.data!
+      auth.login(user, () => {
+        navigate(fromUrl, { replace: true })
+        return
+      })
+    }).catch(err => {
+      setLoading(false)
+      console.log('google login error', err)
+      setExternalLoginError('An unexpected error occurred attempting to login with google')
+    })
+  }
+
   return (
     <Grid container sx={{ marginTop: 2, display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'left' }}>
       <AlphaLoginDisclaimer />
@@ -34,11 +63,7 @@ export default function SignUpExternal() {
       <LegalDisclaimer />
       {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
         <GoogleLoginButton
-          onSuccess={(user) => {
-            auth.login(user, () => {
-              navigate(fromUrl, { replace: true })
-            })
-          }}
+          onSuccess={handleGoogleCredentialResponse}
           onLoginFailure={(error) => {
             console.error('error processing google login response', error)
             setExternalLoginError('An unexpected error occurred attempting to login with google')
@@ -51,6 +76,8 @@ export default function SignUpExternal() {
       </Grid>}
       {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
         <MicrosoftLoginButton
+          isParentPageLoading={loading}
+          setLoading={setLoading}
           onWhitelistFailure={() => {
             setWhitelistError(true)
           }}

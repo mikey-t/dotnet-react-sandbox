@@ -465,6 +465,14 @@ There are swig commands to change each thing related to the URL manually, but th
 - Run `swig setup nodb` or `swig dockerDown && swig setup`
 - Update vscode files `./.vscode/launch.json` and `./client/.vscode/launch.json` - change the url in the chrome launch configuration
 
+### Other Settings
+
+Other customizations and feature flags can be found in:
+
+- `.env.template`
+- `client/src/SiteSettings.ts`
+- `server/src/WebServer/FeatureFlags.cs`
+
 ## IDE - VSCode
 
 I previously preferred JetBrains IDEs (still do actually), but I also like staying with the herd, which I think is primarily using VSCode, so I've decided to switch over. Below are some misc notes on VSCode use.

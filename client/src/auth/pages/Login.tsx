@@ -58,6 +58,30 @@ export default function Login() {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleGoogleCredentialResponse = (credentialResponse: any) => {
+    setLoading(true)
+    api.loginGoogle(credentialResponse.credential).then(res => {
+      if (res.isError()) {
+        setLoading(false)
+        if (res.statusCode === 401) {
+          setWhitelistError(true)
+          return
+        }
+        throw new Error('error logging in with google', res.exception?.toJson())
+      }
+      const user = res.data!
+      auth.login(user, () => {
+        navigate(fromUrl, { replace: true })
+        return
+      })
+    }).catch(err => {
+      setLoading(false)
+      console.log('google login error', err)
+      setExternalLoginError('An unexpected error occurred attempting to login with google')
+    })
+  }
+
   return (
     <>
       <LoadingBackdrop loading={loading} />
@@ -67,11 +91,7 @@ export default function Login() {
         {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
           <Box>
             <GoogleLoginButton
-              onSuccess={(user) => {
-                auth.login(user, () => {
-                  navigate(fromUrl, { replace: true })
-                })
-              }}
+              onSuccess={handleGoogleCredentialResponse}
               onLoginFailure={(error) => {
                 console.error('error processing google login response', error)
                 setExternalLoginError('An unexpected error occurred attempting to login with google')
@@ -80,7 +100,6 @@ export default function Login() {
                 console.error('error initializing google login button', error)
               }}
             />
-            {externalLoginError && <Alert severity="error">{externalLoginError}</Alert>}
           </Box>
         </Grid>}
         {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
@@ -98,6 +117,7 @@ export default function Login() {
             }}
           />
         </Grid>}
+        {externalLoginError && <Alert severity="error">{externalLoginError}</Alert>}
         {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
           <Typography variant="h5" gutterBottom={true} sx={{ mt: 2 }}>OR</Typography>
         </Grid>}

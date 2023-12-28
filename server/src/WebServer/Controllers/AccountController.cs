@@ -17,14 +17,21 @@ public class AccountController : ControllerBase
     private readonly IEnvironmentSettings _environmentSettings;
     private readonly ILoginLogic _loginLogic;
     private readonly IRegistrationLogic _registrationLogic;
+    private readonly IFeatureFlags _featureFlags;
 
-    public AccountController(ILogger<AccountController> logger, IEnvironmentSettings environmentSettings,
-        ILoginLogic loginLogic, IRegistrationLogic registrationLogic)
+    public AccountController(
+        ILogger<AccountController> logger,
+        IEnvironmentSettings environmentSettings,
+        ILoginLogic loginLogic,
+        IRegistrationLogic registrationLogic,
+        IFeatureFlags featureFlags
+    )
     {
         _logger = logger;
         _environmentSettings = environmentSettings;
         _loginLogic = loginLogic;
         _registrationLogic = registrationLogic;
+        _featureFlags = featureFlags;
     }
 
     [AllowAnonymous]
@@ -56,6 +63,8 @@ public class AccountController : ControllerBase
     [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> LoginGoogle([FromBody] GoogleLoginRequest request)
     {
+        ThrowIfExternalLoginsNotEnabled();
+
         LoginResult loginResult;
         try
         {
@@ -83,6 +92,8 @@ public class AccountController : ControllerBase
     [ProducesResponseType(typeof(AccountResponse), (int)HttpStatusCode.OK)]
     public async Task<IActionResult> LoginMicrosoft([FromBody] MicrosoftLoginRequest request)
     {
+        ThrowIfExternalLoginsNotEnabled();
+
         LoginResult loginResult;
         try
         {
@@ -108,6 +119,7 @@ public class AccountController : ControllerBase
     [HttpGet("microsoft-login-redirect")]
     public IActionResult MicrosoftLoginRedirect()
     {
+        ThrowIfExternalLoginsNotEnabled();
         // MSAL docs explain that the only supported responseMode is "fragment" and fragments are not sent to the server, so we're doing nothing here.
         // https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser
         return Ok();
@@ -187,5 +199,13 @@ public class AccountController : ControllerBase
         }
 
         return Ok();
+    }
+
+    private void ThrowIfExternalLoginsNotEnabled()
+    {
+        if (!_featureFlags.IsExternalLoginsEnabled())
+        {
+            throw new Exception("External logins are not enabled");
+        }
     }
 }

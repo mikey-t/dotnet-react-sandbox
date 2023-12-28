@@ -1,6 +1,6 @@
+import { CredentialResponse } from 'google-one-tap'
 import { useEffect, useState } from 'react'
 import { SiteSettings } from '../../SiteSettings'
-import { CredentialResponse } from 'google-one-tap'
 
 interface GoogleLoginButtonProps {
   onInitFailure: (response: unknown) => void

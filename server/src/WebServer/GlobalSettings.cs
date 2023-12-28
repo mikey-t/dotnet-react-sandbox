@@ -47,8 +47,11 @@ namespace WebServer
         [SettingInfo(ShouldLogValue = true)]
         DEV_CLIENT_PORT,
 
-        [SettingInfo(ShouldLogValue = true)]
+        [SettingInfo(ShouldLogValue = true, DefaultValue = "false", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments)]
         EMAIL_SENDING_ENABLED,
+
+        [SettingInfo(ShouldLogValue = true, DefaultValue = "false", DefaultForEnvironment = DefaultSettingForEnvironment.AllEnvironments)]
+        EXTERNAL_LOGINS_ENABLED,
 
         // *********
         // Secrets *

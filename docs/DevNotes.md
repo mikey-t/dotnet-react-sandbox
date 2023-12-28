@@ -68,3 +68,33 @@ Reasoning:
 - Things in feature folders shouldn't reference any components or CSS outside of them - this will allow me to move things into a component library
 - I think that attempting to create feature folders for every little thing will cause more harm than good for small to medium sized projects, so I'm going to lump everything else together for now
 - If individual features start to become complex or are candidates for migration into another library, I'll create feature folders at that point
+
+## External Login Notes
+
+### Microsoft login
+
+Package name: @azure/msal-browser
+
+Npm: https://www.npmjs.com/package/@azure/msal-browser
+
+Github: https://github.com/AzureAD/microsoft-authentication-library-for-js
+
+"The Microsoft Authentication Library for JavaScript enables both client-side and server-side JavaScript applications to authenticate users using Azure AD for work and school accounts (AAD), Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through Azure AD B2C service. It also enables your app to get tokens to access Microsoft Cloud services such as Microsoft Graph."
+
+Also see https://learn.microsoft.com/en-us/entra/identity-platform/scenario-spa-overview
+
+The specific thing I'm using:
+
+```typescript
+import { PublicClientApplication } from '@azure/msal-browser'
+
+const msalConfig: Configuration = {
+  auth: {
+    clientId: SiteSettings.MICROSOFT_CLIENT_ID
+  }
+}
+const msalInstance = new PublicClientApplication(msalConfig)
+
+// This is in a useEffect. Placeholder button is shown until it finishes.
+await msalInstance.initialize()
+```

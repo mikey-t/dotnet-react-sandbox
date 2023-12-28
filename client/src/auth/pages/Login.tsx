@@ -104,6 +104,8 @@ export default function Login() {
         </Grid>}
         {SiteSettings.ENABLE_EXTERNAL_LOGINS && <Grid item xs={12}>
           <MicrosoftLoginButton
+            isParentPageLoading={loading}
+            setLoading={setLoading}
             onWhitelistFailure={() => {
               setWhitelistError(true)
             }}

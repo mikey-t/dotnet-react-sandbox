@@ -8,7 +8,6 @@
   },
   "devDependencies": {
     "@mikeyt23/node-cli-utils": "^2.0.25",
-    "@types/dotenv": "^8.2.0",
     "@types/node": "^20.10.3",
     "@typescript-eslint/eslint-plugin": "^6.13.2",
     "@typescript-eslint/parser": "^6.13.2",

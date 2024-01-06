@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using MikeyT.EnvironmentSettingsNS.Interface;
 using Npgsql;
 using WebServer.Logic;
 
@@ -7,30 +6,29 @@ namespace WebServer.Data;
 
 public class BaseRepository
 {
-    protected string ConnectionString { get; }
+    protected readonly NpgsqlDataSource _dataSource;
 
-    protected BaseRepository(IConnectionStringProvider connectionStringProvider, IEnvironmentSettings environmentSettings)
+    protected BaseRepository(NpgsqlDataSource dataSource)
     {
         DefaultTypeMap.MatchNamesWithUnderscores = true;
         SqlMapper.AddTypeHandler(new DateTimeHandler());
-        ConnectionString = connectionStringProvider.GetConnectionString();
+        _dataSource = dataSource;
+    }
+
+    protected async Task<NpgsqlConnection> GetConnection()
+    {
+        return await _dataSource.OpenConnectionAsync();
     }
 
     public string GetConnectionString()
     {
         var testDbName = Environment.GetEnvironmentVariable(GlobalSettings.DB_NAME_TEST.ToString());
-        if (!ConnectionString.Contains($"Database={testDbName};"))
+        var connectionString = _dataSource.ConnectionString;
+        if (!connectionString.Contains($"Database={testDbName};"))
         {
-            throw new ApplicationException("ConnectionString is only available outside the repository class when testing");
+            throw new ApplicationException("The connection string is only available outside the repository class when testing");
         }
 
-        return ConnectionString;
-    }
-
-    protected async Task<NpgsqlConnection> GetConnection()
-    {
-        var connection = new NpgsqlConnection(ConnectionString);
-        // Using async syntax so "await using var" works when calling this
-        return await Task.FromResult(connection);
+        return connectionString;
     }
 }

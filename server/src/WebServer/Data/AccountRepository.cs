@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using MikeyT.EnvironmentSettingsNS.Interface;
 using Npgsql;
 using WebServer.Logic;
 using WebServer.Model.Auth;
@@ -26,19 +25,11 @@ public interface IAccountRepository
     Task UpdatePassword(long accountId, string passwordHash);
 }
 
-public class AccountRepository : BaseRepository, IAccountRepository
+public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dataSource), IAccountRepository
 {
-    public AccountRepository(IConnectionStringProvider connectionStringProvider, IEnvironmentSettings environmentSettings) :
-        base(connectionStringProvider, environmentSettings)
-    {
-    }
-
     public async Task<Account> AddAccount(Account account)
     {
-        if (account == null)
-        {
-            throw new ArgumentNullException(nameof(account));
-        }
+        ArgumentNullException.ThrowIfNull(account);
 
         if (account.Id != 0)
         {
@@ -46,7 +37,6 @@ public class AccountRepository : BaseRepository, IAccountRepository
         }
 
         await using var connection = await GetConnection();
-        await connection.OpenAsync();
         await using var transaction = await connection.BeginTransactionAsync();
 
         const string insertSql = @"INSERT INTO account (email, first_name, last_name, display_name, password)

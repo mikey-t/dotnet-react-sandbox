@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using MikeyT.EnvironmentSettingsNS.Interface;
+using Npgsql;
 using Serilog;
 using WebServer.Auth;
 using WebServer.Data;
@@ -56,12 +57,13 @@ public class LoginLogic : ILoginLogic
         _googleLoginWrapper = googleLoginWrapper;
     }
 
-    public static LoginLogic FromEnvSettingsOnly(IEnvironmentSettings envSettings)
+    // Used to instantiate an instance and seed an admin user before DI is available
+    public static LoginLogic FromDeps(IEnvironmentSettings envSettings, NpgsqlDataSource dataSource)
     {
         return new LoginLogic(
             Log.ForContext<LoginLogic>(),
             envSettings,
-            new AccountRepository(new ConnectionStringProvider(envSettings), envSettings),
+            new AccountRepository(dataSource),
             new PasswordLogic(),
             new GoogleLoginWrapper());
     }
@@ -267,15 +269,7 @@ public class LoginLogic : ILoginLogic
 
 public class ThirdPartyLoginException : Exception
 {
-    public ThirdPartyLoginException()
-    {
-    }
-
-    public ThirdPartyLoginException(string message) : base(message)
-    {
-    }
-
-    public ThirdPartyLoginException(string message, Exception inner) : base(message, inner)
-    {
-    }
+    public ThirdPartyLoginException() { }
+    public ThirdPartyLoginException(string message) : base(message) { }
+    public ThirdPartyLoginException(string message, Exception inner) : base(message, inner) { }
 }

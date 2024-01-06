@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WebServer.Data;
@@ -9,30 +8,30 @@ namespace WebServer.Test;
 
 public static class TestHelper
 {
-    private static readonly SemaphoreSlim semaphoreSlim = new (1, 1);
-    private static readonly SemaphoreSlim semaphoreSlim2 = new (1, 1);
+    private static readonly SemaphoreSlim semaphoreSlim = new(1, 1);
+    private static readonly SemaphoreSlim semaphoreSlim2 = new(1, 1);
 
     public static DateTime WithoutMilliseconds(this DateTime dateTime)
     {
         return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second, dateTime.Kind);
     }
 
-    public static readonly Account DefaultTestAccount = new (
+    public static readonly Account DefaultTestAccount = new(
         "default.testuser@test.com",
         "Default",
         "TestUser",
         "Default TestUser",
         "super_secret",
-        new List<string> { Role.USER.ToString(), Role.SUPER_ADMIN.ToString() }
+        [Role.USER.ToString(), Role.SUPER_ADMIN.ToString()]
     );
 
-    public static readonly Account AltTestAccount = new (
+    public static readonly Account AltTestAccount = new(
         "alt.testuser@test.com",
         "Alt",
         "TestUser",
         "Alt TestUser",
         "super_secret",
-        new List<string> { Role.USER.ToString() }
+        [Role.USER.ToString()]
     );
 
     public static async Task<CreateTestAccountsResult> EnsureDefaultTestAccounts(AccountRepository accountRepository)
@@ -71,14 +70,8 @@ public static class TestHelper
     }
 }
 
-public class CreateTestAccountsResult
+public class CreateTestAccountsResult(long defaultId, long altId)
 {
-    public long DefaultId { get; }
-    public long AltId { get; }
-
-    public CreateTestAccountsResult(long defaultId, long altId)
-    {
-        DefaultId = defaultId;
-        AltId = altId;
-    }
+    public long DefaultId { get; } = defaultId;
+    public long AltId { get; } = altId;
 }

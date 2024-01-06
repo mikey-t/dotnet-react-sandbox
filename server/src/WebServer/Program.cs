@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using MikeyT.EnvironmentSettingsNS.Interface;
 using MikeyT.EnvironmentSettingsNS.Logic;
+using Npgsql;
 using Serilog;
 using WebServer;
 using WebServer.Auth;
@@ -27,12 +28,11 @@ try
         .WriteTo.Console()
         .ReadFrom.Configuration(ctx.Configuration));
 
-    // Add services to the container
     var envSettings = new EnvironmentSettings(new DefaultEnvironmentVariableProvider(), new DefaultSecretVariableProvider());
     envSettings.AddSettings<GlobalSettings>();
     Log.Logger.Information("Loaded environment settings\n{EnvironmentSettings}", envSettings.GetAllAsSafeLogString());
 
-    // The env var PRE_DEPLOY_HTTP_PORT indicates the server was started with the runBuilt option for testing locally in a single combined package
+    // The env var PRE_DEPLOY_HTTP_PORT indicates that the server was started with the runBuilt option for testing locally in a single combined package
     var preDeployPort = envSettings.GetInt(GlobalSettings.PRE_DEPLOY_HTTP_PORT);
     if (preDeployPort > 0)
     {
@@ -66,6 +66,11 @@ try
     SqlMapper.AddTypeHandler(new DateTimeHandler());
 
     builder.Services.AddSingleton<IEnvironmentSettings>(envSettings);
+
+    var connectionString = new ConnectionStringProvider(envSettings).GetConnectionString();
+    var dataSource = NpgsqlDataSource.Create(connectionString);
+    builder.Services.AddSingleton(dataSource);
+
     builder.Services.AddSingleton<IFeatureFlags, FeatureFlags>();
     builder.Services.AddSingleton<IConnectionStringProvider, ConnectionStringProvider>();
     builder.Services.AddSingleton<IPasswordLogic>(new PasswordLogic());
@@ -77,11 +82,10 @@ try
     builder.Services.AddScoped<IRegistrationLogic, RegistrationLogic>();
     builder.Services.AddScoped<IEmailSender, AwsSimpleEmailSender>();
 
-    var loginLogic = LoginLogic.FromEnvSettingsOnly(envSettings);
+    var loginLogic = LoginLogic.FromDeps(envSettings, dataSource);
     await loginLogic.SeedSuperAdmin();
 
     builder.Services.AddControllers();
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options => { options.ResolveConflictingActions(apiDesc => apiDesc.First()); });
 
@@ -102,7 +106,7 @@ try
 
     var app = builder.Build();
 
-    // This doesn't restrict access to the same routes without the prefix... have to rely on "/api" on
+    // The "UsePathBase" method doesn't restrict access to the same routes without the prefix... have to rely on "/api" on
     // all controllers or use the app.map([url], [callback with the rest of app setup]) method.
     // app.UsePathBase("/api");
 

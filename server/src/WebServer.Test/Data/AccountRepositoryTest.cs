@@ -16,13 +16,13 @@ public class AccountRepositoryTest : BaseRepositoryTest
 
     public AccountRepositoryTest()
     {
-        _accountRepo = new AccountRepository(ConnectionStringProvider, EnvironmentSettings);
+        _accountRepo = new AccountRepository(NpgsqlDataSource.Create(ConnectionString));
     }
 
     [Fact]
     public async Task AccountRepository_BasicCrudTest()
     {
-        await _accountRepo.DeleteAllAccounts();
+        await DeleteAllAccounts();
         await TestHelper.EnsureDefaultTestAccounts(_accountRepo);
 
         var allAccounts = await _accountRepo.GetAll();
@@ -76,7 +76,7 @@ public class AccountRepositoryTest : BaseRepositoryTest
     public async Task AddAccount_DuplicateEmail_Throws()
     {
         var account = GetTestAccount();
-        await _accountRepo.DeleteAccount(account.Email);
+        await DeleteAccount(account.Email, _accountRepo);
 
         await _accountRepo.AddAccount(account);
 
@@ -88,7 +88,7 @@ public class AccountRepositoryTest : BaseRepositoryTest
     public async Task AddAccount_DuplicateEmailDifferentCase_Throws()
     {
         var account = GetTestAccount();
-        await _accountRepo.DeleteAccount(account.Email);
+        await DeleteAccount(account.Email, _accountRepo);
 
         await _accountRepo.AddAccount(account);
 
@@ -101,7 +101,7 @@ public class AccountRepositoryTest : BaseRepositoryTest
     [Fact]
     public async Task BasicRegistrationCrudTest()
     {
-        await _accountRepo.DeleteAllRegistrations();
+        await DeleteAllRegistrations();
 
         var registration = GetTestRegistration();
 
@@ -127,7 +127,7 @@ public class AccountRepositoryTest : BaseRepositoryTest
     [Fact]
     public async Task SetRegistrationEmailCount_UpdatesCount()
     {
-        await _accountRepo.DeleteAllRegistrations();
+        await DeleteAllRegistrations();
 
         var registration = GetTestRegistration();
 
@@ -153,7 +153,7 @@ public class AccountRepositoryTest : BaseRepositoryTest
             LastName = "Doe",
             DisplayName = "John Doe",
             Password = "super_secret",
-            Roles = new List<string> { Role.USER.ToString() }
+            Roles = [Role.USER.ToString()]
         };
     }
 
@@ -169,22 +169,19 @@ public class AccountRepositoryTest : BaseRepositoryTest
             CreatedAt = DateTime.UtcNow.WithoutMilliseconds()
         };
     }
-}
 
-public static class AccountRepositoryExtensions
-{
-    public static async Task DeleteAllAccounts(this AccountRepository repo)
+    private async Task DeleteAllAccounts()
     {
-        await using var connection = new NpgsqlConnection(repo.GetConnectionString());
+        await using var connection = new NpgsqlConnection(ConnectionString);
         await connection.ExecuteAsync("delete from account_role");
         // Don't delete default test user to avoid foreign key constraint errors
         await connection.ExecuteAsync("delete from account where email != @Email", new { TestHelper.DefaultTestAccount.Email });
     }
 
-    public static async Task DeleteAccount(this AccountRepository repo, string email)
+    private async Task DeleteAccount(string email, IAccountRepository accountRepo)
     {
-        await using var connection = new NpgsqlConnection(repo.GetConnectionString());
-        var account = await repo.GetAccountByEmail(email);
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        var account = await accountRepo.GetAccountByEmail(email);
         if (account == null)
         {
             return;
@@ -197,9 +194,9 @@ public static class AccountRepositoryExtensions
         await connection.ExecuteAsync(deleteAccountSql, new { Id = account.Id });
     }
 
-    public static async Task DeleteAllRegistrations(this AccountRepository repo)
+    private async Task DeleteAllRegistrations()
     {
-        await using var connection = new NpgsqlConnection(repo.GetConnectionString());
+        await using var connection = new NpgsqlConnection(ConnectionString);
         await connection.ExecuteAsync("delete from registration");
     }
 }

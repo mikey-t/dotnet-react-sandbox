@@ -1,5 +1,9 @@
 ## Dotnet React Sandbox Changelog
 
+### 2023-05-12
+
+Switched `account.id` from a number to a guid.
+
 ### 2023-12-07
 
 Upgrade dependency versions.

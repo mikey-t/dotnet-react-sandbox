@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using Npgsql;
 using WebServer.Logic;
 using WebServer.Model.Auth;
@@ -8,7 +8,7 @@ namespace WebServer.Data;
 public interface IAccountRepository
 {
     Task<Account> AddAccount(Account account);
-    Task<Account?> GetAccountById(long id);
+    Task<Account?> GetAccountById(Guid id);
     Task<Account?> GetAccountByEmail(string email);
     Task<List<Account>> GetAll();
     Task<Registration> AddRegistration(Registration registration);
@@ -16,13 +16,13 @@ public interface IAccountRepository
     Task<Registration?> GetRegistrationByVerificationCode(Guid code);
     Task DeleteRegistration(string email);
     Task SetRegistrationEmailCount(string email, int emailCount);
-    Task AddRole(long accountId, string role);
-    Task RemoveRole(long accountId, string role);
+    Task AddRole(Guid accountId, string role);
+    Task RemoveRole(Guid accountId, string role);
     Task AddToLoginWhitelist(string email);
     Task RemoveFromLoginWhiteList(string email);
     Task<bool> IsOnLoginWhitelist(string email);
     Task<List<string>> GetLoginWhitelist();
-    Task UpdatePassword(long accountId, string passwordHash);
+    Task UpdatePassword(Guid accountId, string passwordHash);
 }
 
 public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dataSource), IAccountRepository
@@ -31,7 +31,7 @@ public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dat
     {
         ArgumentNullException.ThrowIfNull(account);
 
-        if (account.Id != 0)
+        if (account.Id.HasValue)
         {
             throw new Exception("cannot create an account if it already has an id");
         }
@@ -42,7 +42,7 @@ public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dat
         const string insertSql = @"INSERT INTO account (email, first_name, last_name, display_name, password)
             VALUES( @Email, @FirstName, @LastName, @DisplayName, @Password) returning id;";
 
-        long insertId = await connection.ExecuteScalarAsync<int>(insertSql, account, transaction);
+        Guid insertId = await connection.ExecuteScalarAsync<Guid>(insertSql, account, transaction);
 
         foreach (var role in account.Roles)
         {
@@ -55,7 +55,7 @@ public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dat
         return (await GetAccountById(insertId))!;
     }
 
-    public async Task<Account?> GetAccountById(long id)
+    public async Task<Account?> GetAccountById(Guid id)
     {
         await using var connection = await GetConnection();
         var account = await connection.QuerySingleOrDefaultAsync<Account?>("select * from account where id = @Id", new { Id = id });
@@ -146,14 +146,14 @@ public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dat
             new { EmailCount = emailCount, Email = normalizedEmail });
     }
 
-    public async Task AddRole(long accountId, string role)
+    public async Task AddRole(Guid accountId, string role)
     {
         await using var connection = await GetConnection();
         const string sql = "insert into account_role (account_id, role) values (@AccountId, @Role) on conflict (account_id, role) do nothing";
         await connection.ExecuteAsync(sql, new { AccountId = accountId, Role = role });
     }
 
-    public async Task RemoveRole(long accountId, string role)
+    public async Task RemoveRole(Guid accountId, string role)
     {
         await using var connection = await GetConnection();
         const string sql = "delete from account_role where account_id = @AccountId and role = @Role";
@@ -189,7 +189,7 @@ public class AccountRepository(NpgsqlDataSource dataSource) : BaseRepository(dat
         return results.ToList();
     }
 
-    public async Task UpdatePassword(long accountId, string passwordHash)
+    public async Task UpdatePassword(Guid accountId, string passwordHash)
     {
         await using var connection = await GetConnection();
         await connection.ExecuteAsync("update account set password = @Password where id = @Id", new { Password = passwordHash, Id = accountId });

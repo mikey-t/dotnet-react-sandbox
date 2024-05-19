@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using MikeyT.EnvironmentSettingsNS.Interface;
@@ -47,7 +47,7 @@ public class JwtMiddleware
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
-            var userId = long.Parse(jwtToken.Claims.First(x => x.Type == "sub").Value);
+            var userId = Guid.Parse(jwtToken.Claims.First(x => x.Type == "sub").Value);
 
             // Attach user to context on successful jwt validation
             var user = await accountRepository.GetAccountById(userId);

@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Protocols;
@@ -195,7 +195,7 @@ public class LoginLogic : ILoginLogic
         _logger.Information("super admin account does not exist - attempting to seed");
 
         var hashedPassword = _passwordLogicV2.GetPasswordHash(password);
-        await _accountRepository.AddAccount(new Account(normalizedEmail, hashedPassword, new List<string> { Role.USER.ToString(), Role.SUPER_ADMIN.ToString() }));
+        await _accountRepository.AddAccount(new Account(normalizedEmail, hashedPassword, [Role.USER.ToString(), Role.SUPER_ADMIN.ToString()]));
 
         _logger.Information("seeded admin account");
     }
@@ -234,9 +234,14 @@ public class LoginLogic : ILoginLogic
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
+        if (account.Id == null)
+        {
+            throw new Exception("Cannot generate JWT - account Id is null");
+        }
+
         var claims = new List<Claim>
         {
-            new(JwtRegisteredClaimNames.Sub, account.Id.ToString()),
+            new(JwtRegisteredClaimNames.Sub, account.Id.Value.ToString()),
             new(JwtRegisteredClaimNames.Email, account.Email),
             new("role", Roles.ADMIN),
             new("role", Roles.USER)

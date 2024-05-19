@@ -1,6 +1,7 @@
-﻿using MikeyT.EnvironmentSettingsNS.Interface;
+using MikeyT.EnvironmentSettingsNS.Interface;
 using MikeyT.EnvironmentSettingsNS.Logic;
 using Npgsql;
+using System;
 using WebServer.Data;
 
 namespace WebServer.Test.Data;
@@ -9,8 +10,8 @@ public class BaseRepositoryTest
 {
     protected readonly string ConnectionString;
     protected readonly IEnvironmentSettings EnvironmentSettings;
-    protected readonly long DefaultAccountId;
-    protected readonly long AltAccountId;
+    protected readonly Guid DefaultAccountId;
+    protected readonly Guid AltAccountId;
 
     protected BaseRepositoryTest()
     {

@@ -1,5 +1,9 @@
 # Dotnet React Sandbox Dev Notes
 
+## Pnpm
+
+I'm evaluating use of pnpm, so replace any commands below using "npm" with "pnpm". If I don't run into any issues with pnpm, I'll update this doc.
+
 ## Swig
 
 When working on swigfile changes within the new `swig-cli-modules` project, sometimes `npm link` doesn't work well. Another simple option is to link directly to the directory instead:
@@ -98,3 +102,7 @@ const msalInstance = new PublicClientApplication(msalConfig)
 // This is in a useEffect. Placeholder button is shown until it finishes.
 await msalInstance.initialize()
 ```
+
+## Primary Key from Number to Guid
+
+I switched `account.id` from a number to a guid. It's a performance hit (probably not super relevant, but worth mentioning), but provides better security by removing a potential attacker's ability to guess other IDs. Rather than changing this with a new DB migration, I opted for the simpler solution of updating the existing migration since this is just a template project and not a live production site. For a real site, I would need to either create "v2" versions of tables, migrate the data to the new schema, then use another migration to rename to originals. Or another option for the DB migration would be to add a `new_id` guid field, then systematically add extra columns, indexes and constraints referencing the new guid, then remove the old columns, indexes and constraints.

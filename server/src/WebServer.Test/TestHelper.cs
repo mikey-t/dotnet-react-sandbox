@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using WebServer.Data;
@@ -38,7 +38,7 @@ public static class TestHelper
     {
         var defaultAccount = await EnsureDefaultTestAccount(accountRepository, DefaultTestAccount, semaphoreSlim);
         var altAccount = await EnsureDefaultTestAccount(accountRepository, AltTestAccount, semaphoreSlim2);
-        return new CreateTestAccountsResult(defaultAccount.Id, altAccount.Id);
+        return new CreateTestAccountsResult(defaultAccount.Id!.Value, altAccount.Id!.Value);
     }
 
     private static async Task<Account> EnsureDefaultTestAccount(AccountRepository accountRepository, Account testAccount, SemaphoreSlim semaphore)
@@ -70,8 +70,8 @@ public static class TestHelper
     }
 }
 
-public class CreateTestAccountsResult(long defaultId, long altId)
+public class CreateTestAccountsResult(Guid defaultId, Guid altId)
 {
-    public long DefaultId { get; } = defaultId;
-    public long AltId { get; } = altId;
+    public Guid DefaultId { get; } = defaultId;
+    public Guid AltId { get; } = altId;
 }

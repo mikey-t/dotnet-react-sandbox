@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS public.account;
 
 CREATE TABLE IF NOT EXISTS public.account
 (
-    id           integer                                             NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
     email        character varying(100) COLLATE pg_catalog."default" NOT NULL,
     first_name   character varying(100) COLLATE pg_catalog."default",
     last_name    character varying(100) COLLATE pg_catalog."default",
@@ -53,7 +53,7 @@ DROP TABLE IF EXISTS public.account_role;
 
 CREATE TABLE IF NOT EXISTS public.account_role
 (
-    account_id integer,
+    account_id uuid,
     role       character varying(60) COLLATE pg_catalog."default",
     CONSTRAINT u_account_role UNIQUE (account_id, role),
     CONSTRAINT account_id_fk FOREIGN KEY (account_id)

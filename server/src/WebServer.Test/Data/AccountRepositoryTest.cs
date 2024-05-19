@@ -55,12 +55,12 @@ public class AccountRepositoryTest : BaseRepositoryTest
         var JaneDoeSavedAccount = await _accountRepo.AddAccount(janeDoeAccount);
 
         johnDoeSavedAccount.Should().NotBeNull();
-        johnDoeSavedAccount.Id.Should().BeGreaterThan(0);
+        johnDoeSavedAccount.Id.Should().NotBeNull();
         johnDoeSavedAccount.Roles.Should().NotBeNull();
         johnDoeSavedAccount.Roles.Should().Contain(new List<string> { Role.USER.ToString(), Role.SUPER_ADMIN.ToString() });
 
         JaneDoeSavedAccount.Should().NotBeNull();
-        JaneDoeSavedAccount.Id.Should().BeGreaterThan(0);
+        JaneDoeSavedAccount.Id.Should().NotBeNull();
         JaneDoeSavedAccount.Roles.Should().NotBeNull();
         JaneDoeSavedAccount.Roles.Should().Contain(new List<string> { Role.USER.ToString() });
         JaneDoeSavedAccount.Roles.Should().NotContain(new List<string> { Role.SUPER_ADMIN.ToString() });

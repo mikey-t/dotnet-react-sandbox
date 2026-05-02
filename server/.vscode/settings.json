@@ -1,9 +1,11 @@
 {
-    "[csharp]": {
-        "editor.tabSize": 4,
-    },
-    "dotnet.defaultSolution": "dotnet-react-sandbox.sln",
-    "files.associations": {
-        "*.sql": "postgres"
-    }
+  "[csharp]": {
+    "editor.autoIndent": "full",
+    "editor.trimAutoWhitespace": false,
+    "editor.tabSize": 4
+  },
+  "dotnet.defaultSolution": "dotnet-react-sandbox.sln",
+  "files.associations": {
+    "*.sql": "postgres"
+  }
 }

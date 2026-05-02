@@ -23,7 +23,7 @@ This is a combination of a playground for trying new ideas as well as a referenc
 - Local trusted https support* (especially important when working on external login functionality locally)
 - Role based user authentication/authorization
 - Segregated test database, perfect for running potentially destructive unit tests that access the database - without disturbing your local application data
-- Manage primary and test databases on a dev machine simultaneously with simply centralized shell commands
+- Manage primary and test databases on a dev machine simultaneously with simple centralized shell commands
 - VSCode workspaces for separate client and server work (optional)
 - Dapper for data access (EF is only used for database migrations)
 - XUnit test project for the backend API
@@ -59,8 +59,11 @@ This is a combination of a playground for trying new ideas as well as a referenc
 
 ## Setup Requirements
 
+Recommended guide for setting up Node.js, pnpm, and swig-cli on windows using mise: [mise-windows-guide](https://github.com/mikey-t/mise-windows-guide).
+
 - Node.js >= 20
-- .NET 6 SDK
+- Pnpm (npm technically works but all instructions will assume pnpm)
+- .NET 10 SDK
 - Docker
 - OpenSSL
   - Windows: install via chocolatey in an admin shell
@@ -79,15 +82,15 @@ We will create a project named "acme" with a local URL of "local.acme.com".
 - Ensure you have [setup requirements](#setup-requirements) installed first
 - Install npm package `swig-cli` globally:
   ```
-  npm i -g swig-cli@latest
+  pnpm i -g swig-cli@latest
   ```
 - Navigate to the directory where you want to create your project
 - Use the npm package `dotnet-react-generator` to create your new project (see the [dotnet-react-generator readme](https://github.com/mikey-t/dotnet-react-generator) for more info):
   ```
-  npx -y dotnet-react-generator@latest -o acme -u local.acme.com -d acme
+  pnpx -y dotnet-react-generator@latest -o acme -u local.acme.com -d acme
   ```
-- Navigate into the newly created directory and run: `npm run npmInstall`
-- Run `swig ensureDotnetEfToolInstalled`
+- Navigate into the newly created directory and run: `pnpm run pnpmInstall`
+- Run `dotnet tool restore` command to enable database migration commands
 - Run: `swig syncEnvFiles`
 - Optional: customize values in your project root `.env`
 - Open an admin terminal, navigate to your new solution and run: `swig setup`
@@ -104,13 +107,13 @@ This project uses [swig](https://github.com/mikey-t/swig) for automating dev tas
 If you've just cloned the project, first install npm dependencies in the root as well as the client app by running:
 
 ```
-npm run npmInstall
+pnpm run pnpmInstall
 ```
 
-Then install `swig-cli` as a global npm package if you haven't already (if you don't, you'll have to prefix each command with `npx`):
+Then install `swig-cli` as a global npm package if you haven't already (if you don't, you'll have to prefix each command with `pnpm exec`):
 
 ```
-npm i -g swig-cli@latest
+pnpm i -g swig-cli@latest
 ```
 
 Get a list of all the available tasks by running:
@@ -155,7 +158,7 @@ First ensure you have all the [Setup Requirements](#setup-requirements) setup re
 - Clone this repository, for example: `git clone git@github.com:mikey-t/dotnet-react-sandbox.git`
 - Rename the directory to your new desired project name and delete the new project's `.git` directory
 - Change directory into your new project
-- Run `npm run npmInstall` (runs npm install in project directory root and in `./client`)
+- Run `pnpm run pnpmInstall` (runs pnpm install in project directory root and in `./client`)
 - Run `swig ensureDotnetEfToolInstalled` (ensures the Microsoft EntityFramework Core migrations tool is install: [dotnet-ef](https://www.nuget.org/packages/dotnet-ef))
 - Run `swig configureDotnetDevCerts` (only required if you haven't run `dotnet dev-certs` recently - see https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-dev-certs)
 - Run `swig syncEnvFiles` (or manually copy `.env.template` to `.env`)
@@ -342,15 +345,15 @@ swig dbMigrate main SomeMigrationName
 - Step 11: Apply any other desired changes to the repository before committing your code, and then commit it
 - Step 12: Other developers can then checkout the latest code and run `swig dbMigrate` to get your DB changes for their local DB instances
 
-## Npm vs Yarn
+## Npm vs Yarn vs Pnpm
 
-Yarn sometimes had issues handling the SIGINT signal from ctrl-c and crashed the shell (among other issues), so I'm sticking with npm, which seems to work just fine these days.
+Yarn sometimes had issues handling the SIGINT signal from ctrl-c and crashed the shell (among other issues).
 
-Also, I think some people use yarn because it's faster, but for most of my dev automation, I'm side-stepping npm completely. Because of this, the `swig` commands in this project are significantly faster than if I used npm or yarn for task execution.
+Npm will technically work, but has odd performance issues and startup delays, so I've moved to using pnpm.
 
 ## React Client App
 
-Instead of create-react-app, I'm going with [vite](https://vitejs.dev/). Create react app is convenient but ULTRA slow (HMR is kind of slow and production builds are just ridiculous). Vite has extremely fast HMR and production builds are sometimes 4 times faster than CRA. Vite is now very popular and has very good community support and a vast user base and a very nice plugin architecture for configuration and extensibility. You can build the entire app with `npx createRelease` in under 15 seconds 🚀. That's server, DbMigrations, vite react client - packaged up into a tarball ready for production. It used to take a few minutes because of create-react-app, so it's unlikely I'll ever switch back to CRA.
+Instead of create-react-app, I'm going with [vite](https://vitejs.dev/). Create react app is convenient but ULTRA slow (HMR is kind of slow and production builds are just ridiculous). Vite has extremely fast HMR and production builds are sometimes 4 times faster than CRA. Vite is now very popular and has very good community support and a vast user base and a very nice plugin architecture for configuration and extensibility. You can build the entire app with `pnpm exec createRelease` in under 15 seconds 🚀. That's server, DbMigrations, vite react client - packaged up into a tarball ready for production. It used to take a few minutes because of create-react-app, so it's unlikely I'll ever switch back to CRA.
 
 Vite also has excellent proxy support, which is vital to this project's setup. See config in `./client/vite.config.ts`.
 

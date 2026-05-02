@@ -1,47 +1,46 @@
 # Dotnet React Sandbox Dev Notes
 
-## Pnpm
+## Working on swigfile change in swig-cli-modules
 
-I'm evaluating use of pnpm, so replace any commands below using "npm" with "pnpm". If I don't run into any issues with pnpm, I'll update this doc.
+Use [pnpm link](https://pnpm.io/cli/link#pnpm-link-dir) protocol.
 
-## Swig
+Start developing:
 
-When working on swigfile changes within the new `swig-cli-modules` project, sometimes `npm link` doesn't work well. Another simple option is to link directly to the directory instead:
+- In swig-cli-modules, start watching with `swig watch`
+- In this project, run:
+  - `pnpm link ../swig-cli-modules`
+  - `pnpm install`
 
-- `npm rm swig-cli-modules`
-- `npm i -D ../swig-cli-modules`
-- In swig-cli-modules: `npm run watch`
+Stop developing:
 
-And to undo this just remove and re-add the dependency:
+- In this project, run:
+  - `pnpm unlink swig-cli-modules`
+  - `pnpm install`
+- In swig-cli-modules, stop watching
 
-- `npm rm swig-cli-modules`
-- `npm i -D swig-cli-modules`
-
-Also make sure that the version number matches exactly before running `npm link swg-cli-modules`.
+Remember to finish updating/publishing swig-cli-modules with a new version and reference new version in this project's package.json before final commit.
 
 ## Vite, WSL and ESBuild
 
-If switching between Ubuntu/WSL and Powershell, keep in mind that the client app's use of Vite and it's underlying ESBuild tooling will cause issues unless you re-run `npm install` each time you switch.
+If switching between Ubuntu/WSL and Powershell, keep in mind that the client app's use of Vite and it's underlying ESBuild tooling will cause issues unless you re-run `pnpm install` each time you switch.
 
 ## Updating JS Dependencies
 
 Check what dependencies have new versions available:
 
 ```
-npm outdated
+pnpm outdated
 ```
 
-Update to latest semver:
+Update to latest:
 
 ```
-npm update --save
+pnpm update --latest
 ```
 
 Don't forget to update root dependencies in addition to client project dependencies.
 
 Updating past semver should probably be done one at a time to test for breaking changes for each dependency separately.
-
-Note that dependencies with a major version of 0 will never be updated by `npm update --save`, so you'll have to manually run `npm i -D name-of-package@latest` to get the latest version.
 
 ## Running and Debugging with VSCode
 
@@ -55,7 +54,7 @@ Attaching to an already running instance of the API:
 Debugging the client app:
 
 - Start the API normally in the shell with `swig server`
-- Instead of starting the client with `swig client` (or `npm run dev` from client dir), use the launch configuration by hitting F5.
+- Instead of starting the client with `swig client` (or `pnpm run dev` from client dir), use the launch configuration by hitting F5.
   - If in the root solution, you may have to click into the "Run and Debug" left-pane and select the chrome launch task instead of the API launch task
 
 ## Client Organization Strategy

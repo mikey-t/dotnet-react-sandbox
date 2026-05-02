@@ -49,7 +49,7 @@ try
             {
                 kestrelOptions.ConfigureHttpsDefaults(httpsOptions =>
                 {
-                    httpsOptions.ServerCertificate = new X509Certificate2(siteUrl + ".pfx");
+                    httpsOptions.ServerCertificate = X509CertificateLoader.LoadCertificateFromFile(siteUrl + ".pfx");
                     httpsOptions.AllowAnyClientCertificate();
                 });
             });

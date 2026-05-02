@@ -1,33 +1,24 @@
 {
-  "[typescript]": {
+  "[javascript][typescript][csharp]": {
     "editor.autoIndent": "full",
-    "editor.trimAutoWhitespace": false,
-    "typescript.preferences.quoteStyle": "single",
+    "editor.trimAutoWhitespace": false
+  },
+  "[javascript][typescript][typescriptreact][json][yaml]": {
     "editor.tabSize": 2
   },
-  "[javascript]": {
-    "editor.autoIndent": "full",
-    "editor.trimAutoWhitespace": false,
-    "javascript.preferences.quoteStyle": "single",
-    "editor.tabSize": 2
+  "[csharp]": {
+    "editor.tabSize": 4,
   },
-  "[typescriptreact]": {
-    "editor.tabSize": 2,
-    "typescript.preferences.importModuleSpecifier": "relative"
-  },
-  "[json]": {
-    "editor.tabSize": 2
-  },
-  "[yaml]": {
-    "editor.tabSize": 2
-  },
-  "javascript.preferences.quoteStyle": "single",
-  "typescript.preferences.quoteStyle": "single",
-  "javascript.format.semicolons": "remove",
-  "typescript.format.semicolons": "remove",
-  "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+  "js/ts.preferences.quoteStyle": "single",
+  "js/ts.format.semicolons": "remove",
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": true,
+  "js/ts.preferences.importModuleSpecifier": "relative",
   "cSpell.words": [
     "appbar",
+    "AWSSDK",
+    "buildtransitive",
+    "contentfiles",
+    "coreclr",
     "Hmac",
     "nodb",
     "SYSLIB",
@@ -40,5 +31,5 @@
   ],
   "files.associations": {
     "*.sql": "postgres"
-}
+  }
 }

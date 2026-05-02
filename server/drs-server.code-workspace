@@ -8,6 +8,9 @@
 		}
 	],
 	"settings": {
-		"dotnet.defaultSolution": "dotnet-react-sandbox.sln"
+		"dotnet.defaultSolution": "dotnet-react-sandbox.sln",
+		"cSpell.words": [
+			"AWSSDK"
+		]
 	}
 }

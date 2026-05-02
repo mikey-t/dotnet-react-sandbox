@@ -1,24 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.SimpleEmailV2" Version="3.7.300.48" />
-    <PackageReference Include="Dapper" Version="2.1.28" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.66.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1" />
+    <PackageReference Include="AWSSDK.SimpleEmailV2" Version="4.0.12.12" />
+    <PackageReference Include="Dapper" Version="2.1.72" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.74.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.7" />
     <PackageReference Include="MikeyT.EnvironmentSettings" Version="0.2.1" />
-    <PackageReference Include="Npgsql" Version="8.0.1" />
-    <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+    <PackageReference Include="Npgsql" Version="10.0.2" />
+    <PackageReference Include="Serilog" Version="4.3.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="10.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 
   <ItemGroup>

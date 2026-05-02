@@ -19,7 +19,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		.gitignore = .gitignore
 		dotnet-react-sandbox.sln = dotnet-react-sandbox.sln
 		global.json = global.json
-		gulpfile.js = gulpfile.js
 		LICENSE = LICENSE
 		package.json = package.json
 		README.md = README.md

@@ -7,18 +7,35 @@
     "pnpmInstall": "pnpm install && cd ./client && pnpm install"
   },
   "devDependencies": {
-    "@mikeyt23/node-cli-utils": "^2.0.36",
-    "@types/node": "^20.12.12",
-    "@typescript-eslint/eslint-plugin": "^7.10.0",
-    "@typescript-eslint/parser": "^7.10.0",
-    "dotenv": "^16.4.5",
-    "eslint": "^8.57.0",
-    "swig-cli": "^1.0.3",
-    "swig-cli-modules": "^0.3.3",
-    "tsx": "^4.11.0",
-    "typescript": "^5.4.5"
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
+    "@mikeyt23/node-cli-utils": "^2.1.2",
+    "@types/node": "^24",
+    "@typescript-eslint/eslint-plugin": "^8.59.2",
+    "@typescript-eslint/parser": "^8.59.2",
+    "dotenv": "^17.4.2",
+    "eslint": "^10.3.0",
+    "globals": "^17.6.0",
+    "swig-cli": "^1.0.5",
+    "swig-cli-modules": "^0.3.7",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   },
-  "volta": {
-    "node": "20.13.1"
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^10.33.3",
+      "onFail": "ignore"
+    },
+    "runtime": {
+      "name": "node",
+      "version": "24.14.0"
+    }
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ],
+    "overrides": {}
   }
 }
